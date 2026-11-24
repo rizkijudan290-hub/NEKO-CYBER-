@@ -1,0 +1,2364 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEKO-CYBER // Indie Game Sprite & Neon Tileset Studio</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Press Start 2P, Space Grotesk & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Press+Start+2P&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        pixel: ['"Press Start 2P"', 'monospace'],
+                        sans: ['"Space Grotesk"', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    },
+                    colors: {
+                        cyberBg: '#06070d',
+                        cyberPanel: '#0c0f1d',
+                        cyberCyan: '#00f5d4',
+                        cyberMagenta: '#ff2a85',
+                        cyberYellow: '#fee440',
+                        cyberLime: '#80ff00',
+                        cyberPurple: '#9b5de5',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #06070d;
+            color: #e2e8f0;
+            overflow-x: hidden;
+        }
+
+        /* Crisp Pixel-Art Rendering */
+        canvas {
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #06070d; }
+        ::-webkit-scrollbar-thumb { background: #1e2542; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #00f5d4; }
+
+        /* CRT Scanline Overlay (Toggleable) */
+        .crt-overlay {
+            background: linear-gradient(
+                rgba(18, 16, 16, 0) 50%,
+                rgba(0, 0, 0, 0.34) 50%
+            ), linear-gradient(
+                90deg,
+                rgba(255, 0, 0, 0.03),
+                rgba(0, 255, 0, 0.015),
+                rgba(0, 0, 255, 0.03)
+            );
+            background-size: 100% 3px, 6px 100%;
+            pointer-events: none;
+        }
+
+        /* Chamfered Cyberpunk Panel & Luminous Border */
+        .cyber-card {
+            background: rgba(12, 15, 29, 0.88);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 245, 212, 0.22);
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+            position: relative;
+        }
+        .cyber-card::before {
+            content: '';
+            position: absolute;
+            top: -1px;
+            left: 16px;
+            right: 16px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(0, 245, 212, 0.7), rgba(255, 42, 133, 0.7), transparent);
+            pointer-events: none;
+        }
+
+        .chamfer-btn {
+            clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+        }
+
+        /* Layered Neon Text Glow */
+        .text-glow-cyan {
+            text-shadow: 0 0 8px rgba(0, 245, 212, 0.7), 0 0 20px rgba(0, 245, 212, 0.35);
+        }
+        .text-glow-magenta {
+            text-shadow: 0 0 8px rgba(255, 42, 133, 0.75), 0 0 20px rgba(255, 42, 133, 0.35);
+        }
+        .text-glow-yellow {
+            text-shadow: 0 0 8px rgba(254, 228, 64, 0.75);
+        }
+
+        .neon-cyan-glow { box-shadow: 0 0 18px rgba(0, 245, 212, 0.38); }
+        .neon-magenta-glow { box-shadow: 0 0 18px rgba(255, 42, 133, 0.38); }
+
+        /* Checkerboard transparency pattern for sprite canvases */
+        .checker-bg {
+            background-color: #080a12;
+            background-image:
+                linear-gradient(45deg, #101425 25%, transparent 25%),
+                linear-gradient(-45deg, #101425 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, #101425 75%),
+                linear-gradient(-45deg, transparent 75%, #101425 75%);
+            background-size: 16px 16px;
+            background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+        }
+
+        /* Arcade Range Slider */
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            background: #171c33;
+            height: 6px;
+            border-radius: 999px;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 2px;
+            background: #00f5d4;
+            border: 2px solid #06070d;
+            cursor: pointer;
+            box-shadow: 0 0 10px #00f5d4;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col font-sans antialiased selection:bg-cyberCyan/30 selection:text-cyberCyan relative">
+
+    <!-- Multi-Layer Cyberpunk Parallax City + Neon Rain + Synthwave Floor Background -->
+    <canvas id="cyberCityBackdrop" aria-hidden="true" class="fixed inset-0 w-full h-full pointer-events-none z-0 opacity-75"></canvas>
+
+    <!-- Toggleable CRT Scanline Screen Overlay -->
+    <div id="crt-scanline-layer" aria-hidden="true" class="fixed inset-0 z-40 crt-overlay"></div>
+
+    <!-- Toast Notification Stack -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
+
+    <!-- =====================================================================
+         1. HEADER ARCADE CONSOLE STUDIO
+    ====================================================================== -->
+    <header class="sticky top-0 z-30 bg-[#06070d]/90 backdrop-blur-xl border-b border-cyberCyan/25 px-4 lg:px-6 py-3">
+        <div class="max-w-[1680px] mx-auto flex flex-col xl:flex-row xl:items-center justify-between gap-3">
+            
+            <!-- Brand & Project Badge -->
+            <div class="flex flex-wrap items-center justify-between xl:justify-start gap-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyberCyan/25 to-cyberMagenta/25 border border-cyberCyan/60 flex items-center justify-center text-cyberCyan neon-cyan-glow">
+                        <i class="fa-solid fa-cat text-lg"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-pixel text-xs sm:text-sm text-white tracking-wider flex items-center gap-2">
+                            <span class="text-glow-cyan">NEKO<span class="text-cyberCyan">-CYBER</span></span>
+                            <span class="text-cyberMagenta text-glow-magenta hidden sm:inline">// STUDIO</span>
+                        </h1>
+                        <p class="text-xs text-slate-400 mt-0.5">Indie Pixel-Art Sprite, Neon Tileset &amp; Arcade CRT Console</p>
+                    </div>
+                </div>
+
+                <!-- Project Spec Badge -->
+                <div class="px-3 py-1.5 rounded-lg bg-[#0c0f1d] border border-cyberYellow/40 text-cyberYellow font-mono text-[11px] font-bold tracking-wide">
+                    CYBER-NEKO v3.0 // 32×32 PX &amp; 16×16 TILE
+                </div>
+            </div>
+
+            <!-- Atmospheric Controls + Export & Sandbox Jump -->
+            <div class="flex flex-wrap items-center gap-2">
+                <!-- Toggle CRT Scanlines -->
+                <button id="btn-toggle-crt" type="button" class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-cyberPurple/20 hover:bg-cyberPurple/30 border border-cyberPurple/50 text-cyberPurple text-xs font-mono font-bold transition active:scale-95">
+                    <i class="fa-solid fa-tv"></i>
+                    <span id="crt-label">CRT: ON</span>
+                </button>
+
+                <!-- Toggle Web Audio 8-Bit Chiptune Synth -->
+                <button id="btn-toggle-sfx" type="button" class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-cyberYellow/15 hover:bg-cyberYellow/25 border border-cyberYellow/50 text-cyberYellow text-xs font-mono font-bold transition active:scale-95">
+                    <i id="sfx-icon" class="fa-solid fa-volume-high"></i>
+                    <span id="sfx-label">SFX 8-Bit: ON</span>
+                </button>
+
+                <!-- Export Sprite Sheet PNG -->
+                <button id="btn-export-sheet" type="button" class="chamfer-btn flex items-center gap-2 px-3.5 py-2 bg-cyberCyan hover:bg-[#33f7dd] text-[#06070d] text-xs font-bold shadow-lg shadow-cyberCyan/30 transition active:scale-95">
+                    <i class="fa-solid fa-file-image"></i>
+                    <span>Export PNG Sheet</span>
+                </button>
+
+                <!-- Export JSON Atlas -->
+                <button id="btn-export-json" type="button" class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#13182b] hover:bg-[#1c233d] border border-slate-700 text-slate-200 text-xs font-mono font-semibold transition active:scale-95">
+                    <i class="fa-solid fa-file-code text-cyberCyan"></i>
+                    <span>JSON Atlas</span>
+                </button>
+
+                <!-- Quick Jump to Live Playable Sandbox -->
+                <a href="#sec-sandbox" id="btn-scroll-sandbox" class="chamfer-btn flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-cyberMagenta to-cyberPurple hover:brightness-110 text-white text-xs font-bold shadow-lg shadow-cyberMagenta/30 transition active:scale-95">
+                    <i class="fa-solid fa-gamepad"></i>
+                    <span>Uji di Mini-Level</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- =====================================================================
+         MAIN STUDIO WORKSPACE
+    ====================================================================== -->
+    <main class="relative z-10 flex-1 max-w-[1680px] w-full mx-auto px-4 lg:px-6 py-6 space-y-8">
+
+        <!-- =================================================================
+             2. LIVE SPRITE ANIMATION STAGE & CHARACTER CUSTOMIZER
+        ================================================================== -->
+        <section class="grid grid-cols-1 xl:grid-cols-12 gap-6">
+            
+            <!-- Left/Center: Live Sprite Animation Stage (7 Kolom) -->
+            <div class="xl:col-span-7 cyber-card rounded-2xl p-4 sm:p-5 flex flex-col justify-between space-y-4">
+                
+                <!-- Top Bar: State Selector Tabs -->
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                        <h2 class="font-pixel text-xs text-cyberCyan text-glow-cyan tracking-wide">LIVE SPRITE STAGE</h2>
+                        <p class="text-xs text-slate-400 mt-1">Karakter Chibi Kucing Cyberpunk dengan Panggung Hologram &amp; Trail Energi</p>
+                    </div>
+
+                    <!-- 4 Animation State Tabs -->
+                    <div class="inline-flex flex-wrap gap-1.5 bg-[#06070d] p-1.5 rounded-xl border border-slate-800" role="tablist">
+                        <button type="button" data-anim="IDLE" class="anim-state-btn px-3 py-1.5 rounded-lg font-pixel text-[10px] bg-cyberCyan text-[#06070d] font-bold neon-cyan-glow transition">IDLE</button>
+                        <button type="button" data-anim="RUN" class="anim-state-btn px-3 py-1.5 rounded-lg font-pixel text-[10px] text-slate-400 hover:text-white transition">RUN</button>
+                        <button type="button" data-anim="JUMP" class="anim-state-btn px-3 py-1.5 rounded-lg font-pixel text-[10px] text-slate-400 hover:text-white transition">JUMP</button>
+                        <button type="button" data-anim="OVERDRIVE" class="anim-state-btn px-3 py-1.5 rounded-lg font-pixel text-[10px] text-cyberMagenta hover:bg-cyberMagenta/15 transition">OVERDRIVE</button>
+                    </div>
+                </div>
+
+                <!-- Main Pixel Canvas Stage -->
+                <div class="relative checker-bg rounded-2xl border border-cyberCyan/25 h-[330px] sm:h-[370px] flex items-center justify-center overflow-hidden">
+                    <!-- Top-left HUD Overlay inside Stage -->
+                    <div class="absolute top-3 left-3 flex items-center gap-2 font-mono text-[11px] bg-[#06070d]/90 border border-slate-800 px-3 py-1.5 rounded-lg">
+                        <span class="text-cyberCyan font-bold" id="stage-state-label">STATE: IDLE</span>
+                        <span class="text-slate-600">|</span>
+                        <span class="text-cyberYellow" id="stage-frame-counter">FRAME 1 / 6</span>
+                    </div>
+
+                    <!-- Top-right Stage View Toggles -->
+                    <div class="absolute top-3 right-3 flex flex-wrap items-center justify-end gap-1.5">
+                        <button id="btn-toggle-pedestal" type="button" title="Toggle Hologram Pedestal" class="px-2.5 py-1 rounded-lg font-mono text-[11px] bg-cyberPurple/25 text-cyberPurple border border-cyberPurple/50 transition">
+                            <i class="fa-solid fa-ring mr-1"></i>Holo-Pad
+                        </button>
+                        <button id="btn-toggle-grid" type="button" title="Toggle Pixel Grid" class="px-2.5 py-1 rounded-lg font-mono text-[11px] bg-cyberCyan/20 text-cyberCyan border border-cyberCyan/40 transition">
+                            <i class="fa-solid fa-border-all mr-1"></i>Grid
+                        </button>
+                        <button id="btn-toggle-onion" type="button" title="Toggle Onion Skinning" class="px-2.5 py-1 rounded-lg font-mono text-[11px] bg-[#06070d]/85 text-slate-400 border border-slate-700 hover:text-white transition">
+                            <i class="fa-solid fa-layer-group mr-1"></i>Onion
+                        </button>
+                        <button id="btn-toggle-flip" type="button" title="Flip Horizontal" class="px-2.5 py-1 rounded-lg font-mono text-[11px] bg-[#06070d]/85 text-slate-400 border border-slate-700 hover:text-white transition">
+                            <i class="fa-solid fa-left-right mr-1"></i>Flip
+                        </button>
+                    </div>
+
+                    <canvas id="spriteStageCanvas" width="420" height="340" class="max-w-full max-h-full"></canvas>
+                </div>
+
+                <!-- Playback Controls Bar -->
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center bg-[#06070d] p-3 rounded-xl border border-slate-800/90">
+                    <!-- Play / Pause & Step Frame -->
+                    <div class="md:col-span-4 flex items-center gap-1.5">
+                        <button id="btn-step-prev" type="button" title="Frame Sebelumnya" class="w-9 h-9 rounded-lg bg-[#13182b] hover:bg-[#1f2642] text-slate-200 flex items-center justify-center border border-slate-700 transition">
+                            <i class="fa-solid fa-backward-step text-xs"></i>
+                        </button>
+                        <button id="btn-play-pause" type="button" class="flex-1 h-9 px-3 rounded-lg bg-cyberCyan/15 hover:bg-cyberCyan/25 border border-cyberCyan/40 text-cyberCyan font-mono text-xs font-bold flex items-center justify-center gap-2 transition">
+                            <i id="play-pause-icon" class="fa-solid fa-pause"></i>
+                            <span id="play-pause-text">PAUSE</span>
+                        </button>
+                        <button id="btn-step-next" type="button" title="Frame Berikutnya" class="w-9 h-9 rounded-lg bg-[#13182b] hover:bg-[#1f2642] text-slate-200 flex items-center justify-center border border-slate-700 transition">
+                            <i class="fa-solid fa-forward-step text-xs"></i>
+                        </button>
+                    </div>
+
+                    <!-- FPS Slider -->
+                    <div class="md:col-span-4 flex items-center gap-2.5 px-2">
+                        <label for="fps-slider" class="font-mono text-[11px] text-slate-400 whitespace-nowrap">FPS: <strong id="fps-val" class="text-cyberYellow">10</strong></label>
+                        <input id="fps-slider" type="range" min="4" max="24" value="10" class="w-full">
+                    </div>
+
+                    <!-- Pixel Zoom Selector (4x - 10x) -->
+                    <div class="md:col-span-4 flex items-center justify-end gap-1 font-mono text-[11px]">
+                        <span class="text-slate-400 mr-1">Zoom:</span>
+                        <button type="button" data-zoom="4" class="zoom-btn px-2 py-1 rounded bg-[#13182b] text-slate-400 hover:text-white transition">4x</button>
+                        <button type="button" data-zoom="6" class="zoom-btn px-2 py-1 rounded bg-[#13182b] text-slate-400 hover:text-white transition">6x</button>
+                        <button type="button" data-zoom="8" class="zoom-btn px-2 py-1 rounded bg-cyberCyan text-[#06070d] font-bold transition">8x</button>
+                        <button type="button" data-zoom="10" class="zoom-btn px-2 py-1 rounded bg-[#13182b] text-slate-400 hover:text-white transition">10x</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Character Customizer & Expressions (5 Kolom) -->
+            <div class="xl:col-span-5 cyber-card rounded-2xl p-4 sm:p-5 flex flex-col justify-between space-y-4">
+                <div class="space-y-3.5">
+                    <div>
+                        <h2 class="font-pixel text-xs text-cyberMagenta text-glow-magenta tracking-wide">CYBER-NEKO CUSTOMIZER</h2>
+                        <p class="text-xs text-slate-400 mt-1">Kustomisasi skema neon, ekspresi emosi visor, dan warna bulu secara instan</p>
+                    </div>
+
+                    <!-- 1. Skema Warna Neon -->
+                    <div>
+                        <label class="block font-mono text-xs font-bold text-slate-300 mb-1.5">1. Skema Warna Neon Armor &amp; Syal</label>
+                        <div class="grid grid-cols-2 gap-2 text-xs font-semibold">
+                            <button type="button" data-scheme="neon_cyan" class="scheme-btn p-2 rounded-xl bg-[#13182b] border-2 border-cyberCyan text-white flex items-center justify-between transition">
+                                <span>Neon Cyan</span>
+                                <span class="flex gap-1"><span class="w-3 h-3 rounded-full bg-[#00f5d4]"></span><span class="w-3 h-3 rounded-full bg-[#ff2a85]"></span></span>
+                            </button>
+                            <button type="button" data-scheme="cyber_magenta" class="scheme-btn p-2 rounded-xl bg-[#06070d] border border-slate-800 text-slate-300 hover:border-slate-600 flex items-center justify-between transition">
+                                <span>Cyber Magenta</span>
+                                <span class="flex gap-1"><span class="w-3 h-3 rounded-full bg-[#ff2a85]"></span><span class="w-3 h-3 rounded-full bg-[#9b5de5]"></span></span>
+                            </button>
+                            <button type="button" data-scheme="acid_lime" class="scheme-btn p-2 rounded-xl bg-[#06070d] border border-slate-800 text-slate-300 hover:border-slate-600 flex items-center justify-between transition">
+                                <span>Acid Lime</span>
+                                <span class="flex gap-1"><span class="w-3 h-3 rounded-full bg-[#80ff00]"></span><span class="w-3 h-3 rounded-full bg-[#00f5d4]"></span></span>
+                            </button>
+                            <button type="button" data-scheme="solar_gold" class="scheme-btn p-2 rounded-xl bg-[#06070d] border border-slate-800 text-slate-300 hover:border-slate-600 flex items-center justify-between transition">
+                                <span>Solar Gold</span>
+                                <span class="flex gap-1"><span class="w-3 h-3 rounded-full bg-[#fee440]"></span><span class="w-3 h-3 rounded-full bg-[#ff5400]"></span></span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 2. Pose / Emosi Ekspresi Visor -->
+                    <div>
+                        <label class="block font-mono text-xs font-bold text-slate-300 mb-1.5">2. Ekspresi Emosi Visor Chibi</label>
+                        <div class="grid grid-cols-2 gap-2 text-xs font-mono">
+                            <button type="button" data-expr="normal" class="expr-btn py-2 px-2.5 rounded-xl bg-cyberPurple/25 border-2 border-cyberPurple text-white font-bold transition">Normal Scan</button>
+                            <button type="button" data-expr="battle" class="expr-btn py-2 px-2.5 rounded-xl bg-[#06070d] border border-slate-800 text-slate-400 hover:text-white transition">Battle Target</button>
+                            <button type="button" data-expr="happy" class="expr-btn py-2 px-2.5 rounded-xl bg-[#06070d] border border-slate-800 text-slate-400 hover:text-white transition">Happy Cat ^w^</button>
+                            <button type="button" data-expr="rage" class="expr-btn py-2 px-2.5 rounded-xl bg-[#06070d] border border-slate-800 text-slate-400 hover:text-white transition">Overdrive Rage</button>
+                        </div>
+                    </div>
+
+                    <!-- 3. Warna Bulu Karakter -->
+                    <div>
+                        <label class="block font-mono text-xs font-bold text-slate-300 mb-1.5">3. Warna Bulu Kucing</label>
+                        <div class="grid grid-cols-3 gap-2 text-xs font-mono">
+                            <button type="button" data-fur="obsidian" class="fur-btn py-2 px-2 rounded-xl bg-cyberCyan/15 border-2 border-cyberCyan text-cyberCyan font-bold transition">Obsidian</button>
+                            <button type="button" data-fur="white" class="fur-btn py-2 px-2 rounded-xl bg-[#06070d] border border-slate-800 text-slate-400 hover:text-white transition">Cyber White</button>
+                            <button type="button" data-fur="calico" class="fur-btn py-2 px-2 rounded-xl bg-[#06070d] border border-slate-800 text-slate-400 hover:text-white transition">Calico Neon</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Karakter Lore & Hitbox Toggle -->
+                <div class="p-3 rounded-xl bg-[#06070d] border border-slate-800/90 space-y-1.5 font-mono text-xs">
+                    <div class="flex items-center justify-between">
+                        <span class="text-slate-400">Unit ID:</span>
+                        <strong class="text-cyberCyan">K-09 "KAI" (Cyber-Neko)</strong>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-slate-400">Sprite Matrix:</span>
+                        <strong class="text-white">32 × 32 px (24 Frames)</strong>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-slate-400">Hitbox / Hurtbox:</span>
+                        <label class="inline-flex items-center gap-2 cursor-pointer text-cyberYellow">
+                            <input id="chk-hitbox" type="checkbox" class="accent-cyberYellow rounded">
+                            <span>Tampilkan Box</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- =================================================================
+             3. FILMSTRIP FRAME-BY-FRAME & FULL SPRITE SHEET PREVIEW
+        ================================================================== -->
+        <section class="cyber-card rounded-2xl p-4 sm:p-5 space-y-3.5">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                    <h2 class="font-pixel text-xs text-cyberYellow text-glow-yellow tracking-wide">FILMSTRIP FRAME-BY-FRAME INSPECTOR</h2>
+                    <p class="text-xs text-slate-400 mt-1">Klik salah satu frame untuk mengunci pose, atau buka pratinjau seluruh grid 4×6 (24 frame)</p>
+                </div>
+                <div class="flex flex-wrap items-center gap-3">
+                    <span class="font-mono text-xs text-slate-400">Durasi: <strong id="frame-duration-ms" class="text-cyberCyan">100 ms</strong></span>
+                    <button id="btn-preview-fullsheet" type="button" class="px-3 py-1.5 rounded-xl bg-cyberYellow/15 hover:bg-cyberYellow/25 border border-cyberYellow/50 text-cyberYellow text-xs font-mono font-bold transition">
+                        <i class="fa-solid fa-table-cells mr-1.5"></i>Preview Full Sprite Sheet (4×6)
+                    </button>
+                </div>
+            </div>
+
+            <div id="filmstrip-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+                <!-- 6 Frame Cards diisi via JavaScript -->
+            </div>
+        </section>
+
+        <!-- =================================================================
+             4. NEON TILESET STUDIO & LEVEL PAINTER (GRID 16x10)
+        ================================================================== -->
+        <section class="cyber-card rounded-2xl p-4 sm:p-5 space-y-4">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                <div>
+                    <h2 class="font-pixel text-xs text-cyberCyan text-glow-cyan tracking-wide">NEON TILESET STUDIO &amp; LEVEL PAINTER</h2>
+                    <p class="text-xs text-slate-400 mt-1">Pilih tile 16×16 px &amp; alat gambar (Paint / Fill / Eraser) pada grid 16×10 untuk merancang level game indie</p>
+                </div>
+
+                <!-- Level Presets, Download Tileset & Play -->
+                <div class="flex flex-wrap items-center gap-2">
+                    <button type="button" data-preset="rooftop" class="preset-level-btn px-2.5 py-1.5 rounded-xl bg-[#13182b] hover:bg-cyberCyan/20 border border-cyberCyan/40 text-cyberCyan text-xs font-mono font-semibold transition">
+                        Rooftop Neon
+                    </button>
+                    <button type="button" data-preset="alley" class="preset-level-btn px-2.5 py-1.5 rounded-xl bg-[#13182b] hover:bg-cyberMagenta/20 border border-cyberMagenta/40 text-cyberMagenta text-xs font-mono font-semibold transition">
+                        Cyber Alley
+                    </button>
+                    <button type="button" data-preset="reactor" class="preset-level-btn px-2.5 py-1.5 rounded-xl bg-[#13182b] hover:bg-cyberYellow/20 border border-cyberYellow/40 text-cyberYellow text-xs font-mono font-semibold transition">
+                        Reactor Core
+                    </button>
+                    <button id="btn-download-tileset" type="button" class="px-3 py-1.5 rounded-xl bg-cyberPurple/20 hover:bg-cyberPurple/30 border border-cyberPurple/50 text-cyberPurple text-xs font-mono font-bold transition">
+                        <i class="fa-solid fa-download mr-1"></i>Download Tileset PNG
+                    </button>
+                    <button id="btn-play-custom-level" type="button" class="chamfer-btn px-3.5 py-1.5 bg-cyberCyan hover:bg-[#33f7dd] text-[#06070d] text-xs font-bold shadow transition">
+                        <i class="fa-solid fa-play mr-1"></i>Mainkan Level!
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+                <!-- Tile Palette & Tools (4 Kolom) -->
+                <div class="lg:col-span-4 bg-[#06070d] p-3.5 rounded-xl border border-slate-800 space-y-3">
+                    <!-- Painter Tools Bar: Paint, Fill, Eraser, Clear -->
+                    <div class="grid grid-cols-4 gap-1.5 font-mono text-[11px]">
+                        <button type="button" data-tool="paint" class="painter-tool-btn py-1.5 px-2 rounded-lg bg-cyberCyan text-[#06070d] font-bold flex items-center justify-center gap-1 transition">
+                            <i class="fa-solid fa-paintbrush"></i>Paint
+                        </button>
+                        <button type="button" data-tool="fill" class="painter-tool-btn py-1.5 px-2 rounded-lg bg-[#13182b] text-slate-300 hover:text-white border border-slate-700 flex items-center justify-center gap-1 transition">
+                            <i class="fa-solid fa-fill-drip"></i>Fill
+                        </button>
+                        <button type="button" data-tool="eraser" class="painter-tool-btn py-1.5 px-2 rounded-lg bg-[#13182b] text-slate-300 hover:text-white border border-slate-700 flex items-center justify-center gap-1 transition">
+                            <i class="fa-solid fa-eraser"></i>Erase
+                        </button>
+                        <button type="button" id="btn-clear-grid" class="py-1.5 px-2 rounded-lg bg-rose-950/60 hover:bg-rose-900/70 text-rose-300 border border-rose-500/40 flex items-center justify-center gap-1 transition">
+                            <i class="fa-solid fa-trash"></i>Clear
+                        </button>
+                    </div>
+
+                    <div class="flex items-center justify-between text-[11px] font-mono text-slate-400 pt-1 border-t border-slate-800/80">
+                        <span>8 NEON TILES (16×16 PX)</span>
+                        <span class="text-cyberCyan font-semibold" id="selected-tile-name">Platform Neon Cyan</span>
+                    </div>
+
+                    <div id="tile-palette-grid" class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-2 gap-2">
+                        <!-- 8 Tile Cards diisi via JS -->
+                    </div>
+                </div>
+
+                <!-- Interactive Level Painter Canvas (8 Kolom) -->
+                <div class="lg:col-span-8 bg-[#06070d] p-3 rounded-xl border border-slate-800 flex flex-col items-center">
+                    <div class="w-full overflow-x-auto flex justify-center">
+                        <canvas id="levelPainterCanvas" width="640" height="400" class="rounded-lg border border-slate-700 cursor-crosshair max-w-full h-auto"></canvas>
+                    </div>
+                    <div class="w-full flex items-center justify-between text-[11px] font-mono text-slate-400 mt-2 px-1">
+                        <span>Klik / Drag: Lukis Tile • Klik Kanan: Hapus Cepat</span>
+                        <span>Grid: 16 Kolom × 10 Baris</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- =================================================================
+             5. KOLEKSI ASET HUD & 12 IKON ARCADE INTERAKTIF
+        ================================================================== -->
+        <section class="grid grid-cols-1 xl:grid-cols-12 gap-6">
+            
+            <!-- Left: Interactive Arcade HUD Widgets (5 Kolom) -->
+            <div class="xl:col-span-5 cyber-card rounded-2xl p-4 sm:p-5 space-y-4">
+                <div>
+                    <h2 class="font-pixel text-xs text-cyberMagenta text-glow-magenta tracking-wide">ARCADE HUD &amp; UI WIDGETS</h2>
+                    <p class="text-xs text-slate-400 mt-1">Uji bar HP, isi Overdrive, dan lihat D-Pad virtual bereaksi saat keyboard ditekan</p>
+                </div>
+
+                <!-- HUD Preview Container -->
+                <div class="p-4 rounded-xl bg-[#06070d] border border-slate-800 space-y-4 font-mono">
+                    
+                    <!-- Health Bar Segmented + Interactive +/- Test Buttons -->
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="text-cyberCyan font-bold"><i class="fa-solid fa-heart-pulse mr-1.5 text-cyberMagenta"></i>HP INTEGRITY</span>
+                            <div class="flex items-center gap-1.5">
+                                <button id="btn-hp-minus" type="button" class="px-1.5 py-0.5 rounded bg-rose-500/20 hover:bg-rose-500/40 text-rose-300 border border-rose-500/40 text-[10px]">-10</button>
+                                <span id="hud-hp-text" class="text-white font-bold">100/100</span>
+                                <button id="btn-hp-plus" type="button" class="px-1.5 py-0.5 rounded bg-emerald-500/20 hover:bg-emerald-500/40 text-emerald-300 border border-emerald-500/40 text-[10px]">+10</button>
+                            </div>
+                        </div>
+                        <div id="hud-hp-segments" class="grid grid-cols-10 gap-1 h-3">
+                            <!-- 10 segmen HP -->
+                        </div>
+
+                        <!-- Overdrive Gauge + Charge/Trigger -->
+                        <div class="flex items-center justify-between text-xs pt-1.5">
+                            <span class="text-cyberYellow font-bold"><i class="fa-solid fa-bolt mr-1.5"></i>OVERDRIVE</span>
+                            <div class="flex items-center gap-1.5">
+                                <button id="btn-od-charge" type="button" class="px-1.5 py-0.5 rounded bg-cyberYellow/20 hover:bg-cyberYellow/35 text-cyberYellow border border-cyberYellow/40 text-[10px]">+Charge</button>
+                                <span id="hud-od-text" class="text-cyberYellow font-bold">85%</span>
+                            </div>
+                        </div>
+                        <div class="w-full h-2.5 bg-slate-900 rounded-sm border border-cyberYellow/40 overflow-hidden p-0.5">
+                            <div id="hud-od-bar" class="h-full bg-gradient-to-r from-cyberYellow via-cyberCyan to-cyberMagenta transition-all duration-300" style="width: 85%;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Score, Combo & Mini Radar -->
+                    <div class="grid grid-cols-12 gap-3 items-center pt-2 border-t border-slate-800/80">
+                        <div class="col-span-7 space-y-1.5">
+                            <div class="p-2 rounded bg-[#0c0f1d] border border-slate-800">
+                                <span class="text-[10px] text-slate-400 block">HIGH SCORE</span>
+                                <span id="hud-score-val" class="font-pixel text-xs text-cyberYellow">0004850</span>
+                            </div>
+                            <div class="p-2 rounded bg-[#0c0f1d] border border-slate-800 flex items-center justify-between">
+                                <span class="text-[10px] text-slate-400">COMBO</span>
+                                <span id="hud-combo-val" class="font-pixel text-[11px] text-cyberCyan">x12 HIT!</span>
+                            </div>
+                        </div>
+                        <!-- Mini Radar Canvas -->
+                        <div class="col-span-5 flex flex-col items-center">
+                            <canvas id="radarCanvas" width="96" height="96" class="rounded-full border border-cyberCyan/40 bg-[#050a0e]"></canvas>
+                            <span class="text-[9px] text-cyberCyan mt-1">SECTOR RADAR</span>
+                        </div>
+                    </div>
+
+                    <!-- Reactive Virtual Arcade D-Pad & Action Buttons -->
+                    <div class="pt-2 border-t border-slate-800/80 flex items-center justify-between">
+                        <div class="grid grid-cols-3 gap-1 w-24">
+                            <div></div>
+                            <button id="vpad-up" type="button" data-vkey="jump" class="vpad-btn h-7 rounded bg-[#13182b] border border-slate-700 text-xs transition"><i class="fa-solid fa-caret-up"></i></button>
+                            <div></div>
+                            <button id="vpad-left" type="button" data-vkey="left" class="vpad-btn h-7 rounded bg-[#13182b] border border-slate-700 text-xs transition"><i class="fa-solid fa-caret-left"></i></button>
+                            <div class="h-7 rounded bg-slate-900 border border-slate-800"></div>
+                            <button id="vpad-right" type="button" data-vkey="right" class="vpad-btn h-7 rounded bg-[#13182b] border border-slate-700 text-xs transition"><i class="fa-solid fa-caret-right"></i></button>
+                        </div>
+
+                        <div class="flex items-center gap-2.5">
+                            <button id="vpad-od" type="button" data-vkey="overdrive" class="vpad-btn w-11 h-11 rounded-full bg-cyberMagenta/20 text-cyberMagenta border-2 border-cyberMagenta font-pixel text-[10px] shadow-md transition">OD</button>
+                            <button id="vpad-jmp" type="button" data-vkey="jump" class="vpad-btn w-11 h-11 rounded-full bg-cyberCyan/20 text-cyberCyan border-2 border-cyberCyan font-pixel text-[10px] shadow-md transition">JMP</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: 12 Pixel-Art Arcade Icons Gallery (7 Kolom) -->
+            <div class="xl:col-span-7 cyber-card rounded-2xl p-4 sm:p-5 flex flex-col justify-between space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div>
+                        <h2 class="font-pixel text-xs text-cyberYellow text-glow-yellow tracking-wide">12 PIXEL-ART ARCADE ICONS (16×16)</h2>
+                        <p class="text-xs text-slate-400 mt-1">Klik ikon mana saja untuk mengunduh file PNG transparan satuan (64×64 crisp upscaled)</p>
+                    </div>
+                    <span class="px-2.5 py-1 rounded bg-cyberPurple/15 border border-cyberPurple/40 text-cyberPurple font-mono text-[11px]">16×16 PX Crisp</span>
+                </div>
+
+                <div id="arcade-icons-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                    <!-- 12 Pixel Icons diisi via JavaScript -->
+                </div>
+            </div>
+
+        </section>
+
+        <!-- =================================================================
+             6. ARENA MINI-GAME PLAYABLE ('NEKO RUNNER // LIVE TEST')
+        ================================================================== -->
+        <section id="sec-sandbox" class="cyber-card rounded-2xl p-4 sm:p-5 space-y-4 border-cyberCyan/40">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                <div>
+                    <div class="flex items-center gap-2.5">
+                        <h2 class="font-pixel text-xs sm:text-sm text-cyberCyan text-glow-cyan tracking-wide">NEKO RUNNER // LIVE PLAYABLE SANDBOX</h2>
+                        <span class="px-2 py-0.5 rounded bg-cyberMagenta/20 text-cyberMagenta border border-cyberMagenta/40 font-mono text-[10px] font-bold">PLAYABLE</span>
+                    </div>
+                    <p class="text-xs text-slate-400 mt-1">Uji langsung sprite kucing cyberpunk &amp; tileset neon pilihan Anda! Kumpulkan Cyber Fish &amp; Data Chip untuk meningkatkan skor dan combo.</p>
+                </div>
+
+                <!-- Keyboard Controls Guide + Respawn -->
+                <div class="flex flex-wrap items-center gap-2 font-mono text-[11px]">
+                    <span class="px-2 py-1 rounded bg-[#06070d] border border-slate-700 text-slate-300"><strong class="text-cyberCyan">A / D / ◀ ▶</strong> Lari</span>
+                    <span class="px-2 py-1 rounded bg-[#06070d] border border-slate-700 text-slate-300"><strong class="text-cyberYellow">W / Spasi</strong> Lompat</span>
+                    <span class="px-2 py-1 rounded bg-[#06070d] border border-slate-700 text-slate-300"><strong class="text-cyberMagenta">Shift / E</strong> Overdrive Dash</span>
+                    <button id="btn-reset-sandbox" type="button" class="px-3 py-1 rounded bg-[#13182b] hover:bg-[#1f2642] border border-slate-700 text-white font-semibold transition">
+                        <i class="fa-solid fa-rotate-right mr-1"></i>Respawn
+                    </button>
+                </div>
+            </div>
+
+            <!-- Playable Game Canvas Wrapper -->
+            <div class="relative bg-[#05060c] rounded-2xl border-2 border-slate-800 overflow-hidden flex flex-col items-center">
+                <canvas id="gameSandboxCanvas" width="960" height="420" tabindex="0" class="w-full max-w-[960px] h-auto block focus:outline-none"></canvas>
+
+                <!-- Mobile / Touch Play Controls Bar -->
+                <div class="w-full bg-[#06070d] border-t border-slate-800 px-4 py-2.5 flex items-center justify-between gap-2 lg:hidden">
+                    <div class="flex items-center gap-2">
+                        <button type="button" id="touch-left" class="w-12 h-11 rounded-xl bg-[#13182b] active:bg-cyberCyan active:text-[#06070d] border border-slate-700 text-white font-bold"><i class="fa-solid fa-arrow-left"></i></button>
+                        <button type="button" id="touch-right" class="w-12 h-11 rounded-xl bg-[#13182b] active:bg-cyberCyan active:text-[#06070d] border border-slate-700 text-white font-bold"><i class="fa-solid fa-arrow-right"></i></button>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button type="button" id="touch-od" class="px-3.5 h-11 rounded-xl bg-cyberMagenta/25 active:bg-cyberMagenta border border-cyberMagenta text-cyberMagenta active:text-white font-pixel text-[10px]">OVERDRIVE</button>
+                        <button type="button" id="touch-jump" class="px-4 h-11 rounded-xl bg-cyberCyan/25 active:bg-cyberCyan border border-cyberCyan text-cyberCyan active:text-[#06070d] font-pixel text-[10px]">JUMP</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- =====================================================================
+         7. MODAL PREVIEW FULL SPRITE SHEET (4x6 GRID = 24 FRAMES)
+    ====================================================================== -->
+    <div id="fullsheet-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 backdrop-blur-md p-4">
+        <div class="cyber-card rounded-2xl max-w-3xl w-full p-5 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <div>
+                    <h3 class="font-pixel text-xs sm:text-sm text-cyberCyan text-glow-cyan">FULL SPRITE SHEET PREVIEW (4×6 = 24 FRAMES)</h3>
+                    <p class="text-xs font-mono text-slate-400 mt-1">Baris 1: IDLE • Baris 2: RUN • Baris 3: JUMP • Baris 4: OVERDRIVE (192×128 px)</p>
+                </div>
+                <button id="btn-close-fullsheet" type="button" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-rose-600 text-white flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="checker-bg rounded-xl border border-slate-700 p-4 flex items-center justify-center overflow-x-auto">
+                <canvas id="fullSheetPreviewCanvas" width="576" height="384" class="max-w-full h-auto"></canvas>
+            </div>
+
+            <div class="flex flex-wrap items-center justify-end gap-2 pt-2">
+                <button id="btn-modal-download-png" type="button" class="chamfer-btn px-4 py-2 bg-cyberCyan hover:bg-[#33f7dd] text-[#06070d] text-xs font-bold shadow transition">
+                    <i class="fa-solid fa-download mr-1.5"></i>Unduh PNG Transparan (192×128)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- =====================================================================
+         JAVASCRIPT ENGINE: WEB AUDIO 8-BIT SYNTH, PARALLAX CITY, SPRITE & GAME
+    ====================================================================== -->
+    <script>
+        (function () {
+            'use strict';
+
+            // =================================================================
+            // 1. WEB AUDIO 8-BIT CHIPTUNE SYNTHESIZER (ZERO EXTERNAL FILES)
+            // =================================================================
+            let audioCtx = null;
+            let sfxEnabled = true;
+
+            function playSynthSFX(type) {
+                if (!sfxEnabled) return;
+                try {
+                    if (!audioCtx) {
+                        const AudioContext = window.AudioContext || window.webkitAudioContext;
+                        audioCtx = new AudioContext();
+                    }
+                    if (audioCtx.state === 'suspended') audioCtx.resume();
+
+                    const now = audioCtx.currentTime;
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+
+                    if (type === 'blip') {
+                        osc.type = 'square';
+                        osc.frequency.setValueAtTime(520, now);
+                        osc.frequency.exponentialRampToValueAtTime(880, now + 0.06);
+                        gain.gain.setValueAtTime(0.05, now);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+                        osc.start(now);
+                        osc.stop(now + 0.07);
+                    } else if (type === 'paint') {
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(340 + Math.random() * 140, now);
+                        gain.gain.setValueAtTime(0.05, now);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+                        osc.start(now);
+                        osc.stop(now + 0.05);
+                    } else if (type === 'jump') {
+                        osc.type = 'square';
+                        osc.frequency.setValueAtTime(220, now);
+                        osc.frequency.exponentialRampToValueAtTime(640, now + 0.14);
+                        gain.gain.setValueAtTime(0.06, now);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+                        osc.start(now);
+                        osc.stop(now + 0.15);
+                    } else if (type === 'pickup') {
+                        osc.type = 'square';
+                        osc.frequency.setValueAtTime(660, now);
+                        osc.frequency.setValueAtTime(990, now + 0.06);
+                        gain.gain.setValueAtTime(0.06, now);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+                        osc.start(now);
+                        osc.stop(now + 0.14);
+                    } else if (type === 'overdrive') {
+                        osc.type = 'sawtooth';
+                        osc.frequency.setValueAtTime(180, now);
+                        osc.frequency.exponentialRampToValueAtTime(1180, now + 0.28);
+                        gain.gain.setValueAtTime(0.08, now);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+                        osc.start(now);
+                        osc.stop(now + 0.3);
+                    }
+                } catch (e) {
+                    // Ignore audio restriction if blocked
+                }
+            }
+
+            // =================================================================
+            // 2. MULTI-LAYER PARALLAX CYBERPUNK CITY + NEON RAIN + SYNTHWAVE
+            // =================================================================
+            const cityCanvas = document.getElementById('cyberCityBackdrop');
+            const cityCtx = cityCanvas.getContext('2d');
+            let raindrops = [];
+            let cityScroll = 0;
+
+            function initCityBackdrop() {
+                cityCanvas.width = window.innerWidth;
+                cityCanvas.height = window.innerHeight;
+                raindrops = Array.from({ length: 85 }, () => ({
+                    x: Math.random() * cityCanvas.width,
+                    y: Math.random() * cityCanvas.height,
+                    len: 10 + Math.random() * 16,
+                    speed: 6 + Math.random() * 7,
+                    color: Math.random() > 0.35 ? 'rgba(0, 245, 212, 0.22)' : 'rgba(255, 42, 133, 0.22)'
+                }));
+            }
+
+            function renderCityBackdrop() {
+                const w = cityCanvas.width;
+                const h = cityCanvas.height;
+                cityCtx.clearRect(0, 0, w, h);
+
+                cityScroll += 0.35;
+
+                // Horizon Synthwave Glow
+                const horizonY = Math.floor(h * 0.72);
+                const skyGrad = cityCtx.createLinearGradient(0, 0, 0, horizonY);
+                skyGrad.addColorStop(0, '#05060c');
+                skyGrad.addColorStop(1, '#120b24');
+                cityCtx.fillStyle = skyGrad;
+                cityCtx.fillRect(0, 0, w, horizonY);
+
+                // Far Skyline Silhouettes + Blinking Windows
+                const bWidth = 90;
+                const numCols = Math.ceil(w / bWidth) + 2;
+                for (let i = 0; i < numCols; i++) {
+                    const bx = ((i * bWidth - (cityScroll * 0.4) % bWidth) - bWidth);
+                    const bh = 120 + ((i * 53) % 160);
+                    const by = horizonY - bh;
+                    cityCtx.fillStyle = '#090c1a';
+                    cityCtx.fillRect(bx, by, bWidth - 8, bh);
+
+                    // Vertical Hologram Billboard on some towers
+                    if (i % 3 === 0) {
+                        cityCtx.fillStyle = i % 6 === 0 ? 'rgba(0, 245, 212, 0.18)' : 'rgba(255, 42, 133, 0.18)';
+                        cityCtx.fillRect(bx + 10, by + 20, 10, 54);
+                    }
+
+                    // Blinking Neon Windows
+                    for (let wy = by + 16; wy < horizonY - 16; wy += 22) {
+                        if ((i + wy) % 3 === 0) {
+                            cityCtx.fillStyle = (i % 2 === 0) ? 'rgba(0, 245, 212, 0.28)' : 'rgba(254, 228, 64, 0.25)';
+                            cityCtx.fillRect(bx + 26, wy, 6, 4);
+                            cityCtx.fillRect(bx + 44, wy + 6, 6, 4);
+                        }
+                    }
+                }
+
+                // Synthwave Perspective Grid Floor
+                cityCtx.fillStyle = '#070812';
+                cityCtx.fillRect(0, horizonY, w, h - horizonY);
+
+                cityCtx.strokeStyle = 'rgba(155, 93, 229, 0.24)';
+                cityCtx.lineWidth = 1;
+                // Horizontal perspective lines
+                for (let gy = horizonY; gy < h; gy += Math.max(8, (gy - horizonY) * 0.22 + 8)) {
+                    cityCtx.beginPath();
+                    cityCtx.moveTo(0, gy);
+                    cityCtx.lineTo(w, gy);
+                    cityCtx.stroke();
+                }
+                // Perspective vanishing rays
+                const centerX = w / 2;
+                for (let rx = -w; rx <= w * 2; rx += 90) {
+                    cityCtx.beginPath();
+                    cityCtx.moveTo(centerX + (rx - centerX) * 0.25, horizonY);
+                    cityCtx.lineTo(rx, h);
+                    cityCtx.stroke();
+                }
+
+                // Horizon Neon Line
+                cityCtx.strokeStyle = 'rgba(0, 245, 212, 0.45)';
+                cityCtx.beginPath();
+                cityCtx.moveTo(0, horizonY);
+                cityCtx.lineTo(w, horizonY);
+                cityCtx.stroke();
+
+                // Neon Rain Particles
+                raindrops.forEach(drop => {
+                    drop.y += drop.speed;
+                    drop.x -= 1.2;
+                    if (drop.y > h) {
+                        drop.y = -drop.len;
+                        drop.x = Math.random() * w;
+                    }
+                    cityCtx.strokeStyle = drop.color;
+                    cityCtx.beginPath();
+                    cityCtx.moveTo(drop.x, drop.y);
+                    cityCtx.lineTo(drop.x - 2, drop.y + drop.len);
+                    cityCtx.stroke();
+                });
+            }
+
+            // =================================================================
+            // 3. STATE GLOBAL & PALETTES
+            // =================================================================
+            const colorSchemes = {
+                neon_cyan:     { primary: '#00f5d4', secondary: '#ff2a85', glow: 'rgba(0, 245, 212, 0.48)' },
+                cyber_magenta: { primary: '#ff2a85', secondary: '#9b5de5', glow: 'rgba(255, 42, 133, 0.48)' },
+                acid_lime:     { primary: '#80ff00', secondary: '#00f5d4', glow: 'rgba(128, 255, 0, 0.48)' },
+                solar_gold:    { primary: '#fee440', secondary: '#ff5400', glow: 'rgba(254, 228, 64, 0.48)' }
+            };
+
+            const furPalettes = {
+                obsidian: { main: '#1a1e2e', shade: '#0f121d', earInner: '#ff4d94' },
+                white:    { main: '#e2e8f0', shade: '#94a3b8', earInner: '#ff70a6' },
+                calico:   { main: '#f8fafc', shade: '#cbd5e1', earInner: '#ff70a6', patch1: '#ff7b00', patch2: '#1e293b' }
+            };
+
+            const state = {
+                animState: 'IDLE',
+                frameIndex: 0,
+                totalFrames: 6,
+                isPlaying: true,
+                fps: 10,
+                zoom: 8,
+                showPedestal: true,
+                showGrid: true,
+                onionSkin: false,
+                flipH: false,
+                showHitbox: false,
+                scheme: 'neon_cyan',
+                expr: 'normal', // 'normal' | 'battle' | 'happy' | 'rage'
+                fur: 'obsidian',
+                selectedTileId: 2,
+                painterTool: 'paint', // 'paint' | 'fill' | 'eraser'
+                score: 4850,
+                combo: 12,
+                hp: 100,
+                overdriveCharge: 85
+            };
+
+            function showToast(title, msg, accent = 'cyan') {
+                const container = document.getElementById('toast-container');
+                const el = document.createElement('div');
+                const borderCol = accent === 'magenta' ? 'border-cyberMagenta/70' : accent === 'yellow' ? 'border-cyberYellow/70' : 'border-cyberCyan/70';
+                el.className = `pointer-events-auto bg-[#0c0f1d]/95 backdrop-blur-md border ${borderCol} rounded-xl p-3 shadow-2xl transition-all duration-300 transform translate-y-2 opacity-0`;
+                el.innerHTML = `
+                    <p class="font-pixel text-[10px] text-white">${title}</p>
+                    <p class="text-xs text-slate-300 mt-1">${msg}</p>
+                `;
+                container.appendChild(el);
+                requestAnimationFrame(() => el.classList.remove('translate-y-2', 'opacity-0'));
+                setTimeout(() => {
+                    el.classList.add('opacity-0', 'translate-y-2');
+                    setTimeout(() => el.remove(), 300);
+                }, 3000);
+            }
+
+            // =================================================================
+            // 4. PROCEDURAL 32x32 CYBERPUNK CHIBI CAT SPRITE RENDERER
+            // =================================================================
+            function drawCyberNekoFrame(ctx, anim, frame, opts = {}) {
+                const sch = colorSchemes[opts.scheme || state.scheme];
+                const fur = furPalettes[opts.fur || state.fur];
+                const expr = opts.expr || state.expr;
+
+                ctx.clearRect(0, 0, 32, 32);
+
+                const px = (x, y, w, h, col) => {
+                    ctx.fillStyle = col;
+                    ctx.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h));
+                };
+
+                let bobY = 0;
+                let leanX = 0;
+                let legL = 0, legR = 0;
+                let scarfWave = 0;
+                let earTwitch = (anim === 'IDLE' && frame === 4) ? 1 : 0;
+
+                if (anim === 'IDLE') {
+                    bobY = (frame === 2 || frame === 3) ? 1 : 0;
+                    scarfWave = Math.round(Math.sin((frame / 6) * Math.PI * 2) * 1.4);
+                } else if (anim === 'RUN') {
+                    leanX = 2;
+                    bobY = (frame % 2 === 0) ? -1 : 1;
+                    const legCycles = [[-3, 3], [-1, 2], [2, -2], [3, -3], [1, -1], [-2, 2]];
+                    legL = legCycles[frame][0];
+                    legR = legCycles[frame][1];
+                    scarfWave = (frame % 2 === 0) ? -1 : 1;
+                } else if (anim === 'JUMP') {
+                    const jumpHeights = [2, -3, -5, -4, -1, 1];
+                    bobY = jumpHeights[frame];
+                    legL = frame === 0 ? 1 : -2;
+                    legR = frame === 0 ? 1 : -1;
+                    scarfWave = frame < 3 ? 2 : -2;
+                } else if (anim === 'OVERDRIVE') {
+                    bobY = (frame % 2 === 0) ? -2 : -1;
+                    scarfWave = (frame % 2 === 0) ? -2 : 2;
+                }
+
+                const cx = 13 + leanX;
+                const cy = 9 + bobY;
+
+                // Overdrive Plasma Aura & Electric Bolts
+                if (anim === 'OVERDRIVE' || expr === 'rage') {
+                    const auraCol = (frame % 2 === 0) ? sch.primary : sch.secondary;
+                    ctx.fillStyle = auraCol;
+                    ctx.globalAlpha = 0.28;
+                    ctx.fillRect(cx - 5, cy - 4, 20, 24);
+                    ctx.globalAlpha = 1.0;
+
+                    const bolts = [
+                        [cx - 4, cy + (frame * 3) % 16],
+                        [cx + 13, cy + ((frame + 2) * 4) % 16],
+                        [cx + (frame * 2) % 10, cy - 4]
+                    ];
+                    bolts.forEach(([bx, by], i) => {
+                        px(bx, by, 2, 1, i % 2 === 0 ? '#fee440' : sch.primary);
+                        px(bx + 1, by + 1, 1, 2, '#ffffff');
+                    });
+                }
+
+                // 1. Cybernetic Segmented Tail
+                const tailBaseX = cx - 2;
+                const tailBaseY = cy + 13;
+                for (let s = 0; s < 5; s++) {
+                    const waveY = Math.round(Math.sin((frame * 0.9) + s * 0.7) * 1.5);
+                    const tx = tailBaseX - s - 1;
+                    const ty = tailBaseY - Math.floor(s * 0.8) + waveY;
+                    px(tx, ty, 2, 2, s % 2 === 0 ? fur.main : sch.primary);
+                }
+
+                // 2. Flowing Hologram Scarf
+                const scarfX = cx - 1;
+                const scarfY = cy + 10;
+                const scarfLen = anim === 'RUN' ? 8 : 6;
+                for (let i = 0; i < scarfLen; i++) {
+                    const sy = scarfY + Math.round(Math.sin(i * 0.8 + frame) * 1) + (i > 2 ? scarfWave : 0);
+                    px(scarfX - i, sy, 2, 2, i === scarfLen - 1 ? sch.primary : sch.secondary);
+                }
+
+                // 3. Robotic Cat Ears
+                px(cx + 1, cy - 3 + earTwitch, 3, 3, fur.main);
+                px(cx + 2, cy - 2 + earTwitch, 1, 2, fur.earInner);
+                px(cx + 1, cy - 3 + earTwitch, 1, 1, sch.primary);
+
+                px(cx + 7, cy - 3, 3, 3, fur.main);
+                px(cx + 8, cy - 2, 1, 2, fur.earInner);
+                px(cx + 9, cy - 3, 1, 1, sch.primary);
+
+                // 4. Chibi Head
+                px(cx, cy, 11, 9, fur.main);
+                px(cx + 1, cy - 1, 9, 1, fur.main);
+                if ((opts.fur || state.fur) === 'calico') {
+                    px(cx, cy, 4, 3, fur.patch1);
+                    px(cx + 7, cy + 1, 4, 3, fur.patch2);
+                }
+                px(cx - 1, cy + 5, 1, 1, fur.shade);
+                px(cx + 11, cy + 5, 1, 1, fur.shade);
+
+                // 5. Dynamic Visor Expression
+                const visorGlow = (anim === 'OVERDRIVE' || expr === 'rage') ? '#fee440' : sch.primary;
+                px(cx + 1, cy + 2, 10, 4, '#06070d');
+
+                if (expr === 'normal') {
+                    px(cx + 2, cy + 3, 8, 2, visorGlow);
+                    px(cx + 2 + (frame % 6), cy + 3, 2, 1, '#ffffff');
+                } else if (expr === 'battle') {
+                    // Targeted dual optic lenses + crosshair
+                    px(cx + 2, cy + 3, 3, 2, visorGlow);
+                    px(cx + 7, cy + 3, 3, 2, sch.secondary);
+                    px(cx + 3, cy + 3, 1, 1, '#ffffff');
+                    px(cx + 8, cy + 3, 1, 1, '#ffffff');
+                } else if (expr === 'happy') {
+                    // Happy '^ ^' pixel eyes
+                    px(cx + 2, cy + 4, 1, 1, visorGlow);
+                    px(cx + 3, cy + 3, 1, 1, visorGlow);
+                    px(cx + 4, cy + 4, 1, 1, visorGlow);
+
+                    px(cx + 7, cy + 4, 1, 1, visorGlow);
+                    px(cx + 8, cy + 3, 1, 1, visorGlow);
+                    px(cx + 9, cy + 4, 1, 1, visorGlow);
+                } else if (expr === 'rage') {
+                    // Angled glowing V-visor
+                    px(cx + 2, cy + 3, 3, 2, '#fee440');
+                    px(cx + 7, cy + 3, 3, 2, '#fee440');
+                    px(cx + 4, cy + 4, 4, 1, '#ff2a85');
+                }
+
+                // 6. Cyberpunk Jacket & Core Stripe
+                px(cx + 1, cy + 9, 9, 7, '#161b2e');
+                px(cx + 2, cy + 9, 7, 2, sch.secondary);
+                px(cx + 4, cy + 11, 3, 4, sch.primary);
+
+                const armSwing = anim === 'RUN' ? (frame % 2 === 0 ? -1 : 1) : 0;
+                px(cx - 1, cy + 10 + armSwing, 2, 4, fur.main);
+                px(cx + 10, cy + 10 - armSwing, 2, 4, sch.primary);
+
+                // 7. Legs & Hover-Boots
+                const footLY = cy + 16 + Math.min(0, legL);
+                const footRY = cy + 16 + Math.min(0, legR);
+                const footLX = cx + 2 + Math.floor(legL * 0.5);
+                const footRX = cx + 6 + Math.floor(legR * 0.5);
+
+                px(footLX, footLY, 3, 3, fur.shade);
+                px(footLX - 1, footLY + 2, 4, 2, '#1e293b');
+                px(footLX - 1, footLY + 4, 4, 1, sch.primary);
+
+                px(footRX, footRY, 3, 3, fur.main);
+                px(footRX, footRY + 2, 4, 2, '#1e293b');
+                px(footRX, footRY + 4, 4, 1, sch.primary);
+
+                if (anim === 'RUN' || anim === 'JUMP' || anim === 'OVERDRIVE') {
+                    px(footLX - 2, footLY + 4, 2, 1, '#fee440');
+                    px(footRX + 2, footRY + 5, 2, 1, sch.secondary);
+                }
+            }
+
+            // =================================================================
+            // 5. LIVE SPRITE STAGE WITH HOLOGRAM PEDESTAL & AFTER-IMAGE TRAIL
+            // =================================================================
+            const stageCanvas = document.getElementById('spriteStageCanvas');
+            const stageCtx = stageCanvas.getContext('2d');
+            const offPrev = document.createElement('canvas');
+            offPrev.width = 32; offPrev.height = 32;
+            const offCurr = document.createElement('canvas');
+            offCurr.width = 32; offCurr.height = 32;
+
+            let holoPhase = 0;
+
+            function renderStage() {
+                const w = stageCanvas.width;
+                const h = stageCanvas.height;
+                stageCtx.imageSmoothingEnabled = false;
+                stageCtx.clearRect(0, 0, w, h);
+
+                const spriteSize = 32 * state.zoom;
+                const drawX = Math.floor((w - spriteSize) / 2);
+                const drawY = Math.floor((h - spriteSize) / 2) - 8;
+                const sch = colorSchemes[state.scheme];
+
+                // Rotating Hologram Pedestal
+                if (state.showPedestal) {
+                    holoPhase += 0.04;
+                    const pedY = drawY + spriteSize - 6;
+                    const rx = spriteSize * 0.36;
+                    const ry = 12;
+
+                    // Outer Neon Ring
+                    stageCtx.save();
+                    stageCtx.strokeStyle = sch.primary;
+                    stageCtx.lineWidth = 2;
+                    stageCtx.beginPath();
+                    stageCtx.ellipse(w / 2, pedY, rx, ry, 0, 0, Math.PI * 2);
+                    stageCtx.stroke();
+
+                    // Inner Dashed Rotating Ring
+                    stageCtx.setLineDash([8, 6]);
+                    stageCtx.lineDashOffset = -holoPhase * 25;
+                    stageCtx.strokeStyle = sch.secondary;
+                    stageCtx.beginPath();
+                    stageCtx.ellipse(w / 2, pedY, rx * 0.72, ry * 0.7, 0, 0, Math.PI * 2);
+                    stageCtx.stroke();
+
+                    // Vertical Hologram Light Beam
+                    const beamGrad = stageCtx.createLinearGradient(0, pedY - spriteSize * 0.7, 0, pedY);
+                    beamGrad.addColorStop(0, 'rgba(0, 245, 212, 0)');
+                    beamGrad.addColorStop(1, sch.glow);
+                    stageCtx.fillStyle = beamGrad;
+                    stageCtx.fillRect(w / 2 - rx * 0.75, pedY - spriteSize * 0.65, rx * 1.5, spriteSize * 0.65);
+                    stageCtx.restore();
+                }
+
+                // After-Image Ghost Trail (during RUN / OVERDRIVE) or Onion Skin
+                if (state.onionSkin || state.animState === 'RUN' || state.animState === 'OVERDRIVE') {
+                    const prevFrame = (state.frameIndex - 1 + state.totalFrames) % state.totalFrames;
+                    const pCtx = offPrev.getContext('2d');
+                    pCtx.imageSmoothingEnabled = false;
+                    drawCyberNekoFrame(pCtx, state.animState, prevFrame);
+
+                    const trailOffset = state.onionSkin ? 0 : (state.flipH ? 18 : -18);
+                    stageCtx.save();
+                    stageCtx.globalAlpha = state.onionSkin ? 0.32 : 0.22;
+                    if (state.flipH) {
+                        stageCtx.translate(w, 0);
+                        stageCtx.scale(-1, 1);
+                    }
+                    stageCtx.drawImage(offPrev, drawX + trailOffset, drawY, spriteSize, spriteSize);
+                    stageCtx.restore();
+                }
+
+                // Floating Energy Particles when OVERDRIVE is active
+                if (state.animState === 'OVERDRIVE') {
+                    for (let i = 0; i < 8; i++) {
+                        const px = w / 2 + Math.sin(holoPhase * 2 + i * 1.1) * (spriteSize * 0.42);
+                        const py = drawY + spriteSize - ((holoPhase * 60 + i * 32) % spriteSize);
+                        stageCtx.fillStyle = i % 2 === 0 ? sch.primary : '#fee440';
+                        stageCtx.fillRect(px, py, 4, 4);
+                    }
+                }
+
+                // Active Frame Sprite
+                const cCtx = offCurr.getContext('2d');
+                cCtx.imageSmoothingEnabled = false;
+                drawCyberNekoFrame(cCtx, state.animState, state.frameIndex);
+
+                stageCtx.save();
+                if (state.flipH) {
+                    stageCtx.translate(w, 0);
+                    stageCtx.scale(-1, 1);
+                }
+                stageCtx.drawImage(offCurr, drawX, drawY, spriteSize, spriteSize);
+                stageCtx.restore();
+
+                // Pixel Grid Overlay
+                if (state.showGrid) {
+                    stageCtx.strokeStyle = 'rgba(255, 255, 255, 0.07)';
+                    stageCtx.lineWidth = 1;
+                    for (let gx = 0; gx <= 32; gx++) {
+                        stageCtx.beginPath();
+                        stageCtx.moveTo(drawX + gx * state.zoom, drawY);
+                        stageCtx.lineTo(drawX + gx * state.zoom, drawY + spriteSize);
+                        stageCtx.stroke();
+                    }
+                    for (let gy = 0; gy <= 32; gy++) {
+                        stageCtx.beginPath();
+                        stageCtx.moveTo(drawX, drawY + gy * state.zoom);
+                        stageCtx.lineTo(drawX + spriteSize, drawY + gy * state.zoom);
+                        stageCtx.stroke();
+                    }
+                }
+
+                // Hitbox & Hurtbox Overlay
+                if (state.showHitbox) {
+                    const z = state.zoom;
+                    stageCtx.strokeStyle = '#00f5d4';
+                    stageCtx.lineWidth = 2;
+                    stageCtx.strokeRect(drawX + 10 * z, drawY + 8 * z, 13 * z, 21 * z);
+                    if (state.animState === 'OVERDRIVE' || state.animState === 'RUN') {
+                        stageCtx.strokeStyle = '#ff2a85';
+                        stageCtx.strokeRect(drawX + 6 * z, drawY + 6 * z, 21 * z, 23 * z);
+                    }
+                }
+
+                document.getElementById('stage-state-label').textContent = `STATE: ${state.animState}`;
+                document.getElementById('stage-frame-counter').textContent = `FRAME ${state.frameIndex + 1} / ${state.totalFrames}`;
+                updateFilmstripHighlight();
+            }
+
+            // =================================================================
+            // 6. FILMSTRIP & FULL SPRITE SHEET MODAL (4x6 = 24 FRAMES)
+            // =================================================================
+            function buildFilmstrip() {
+                const container = document.getElementById('filmstrip-container');
+                const durMs = Math.round(1000 / state.fps);
+                document.getElementById('frame-duration-ms').textContent = `${durMs} ms`;
+
+                container.innerHTML = '';
+                for (let f = 0; f < state.totalFrames; f++) {
+                    const card = document.createElement('button');
+                    card.type = 'button';
+                    card.setAttribute('data-frame-card', f);
+                    card.className = 'filmstrip-card p-2.5 rounded-xl bg-[#06070d] border border-slate-800 hover:border-cyberCyan/60 flex flex-col items-center gap-2 transition text-left';
+                    card.innerHTML = `
+                        <div class="w-full flex items-center justify-between font-mono text-[10px]">
+                            <span class="text-cyberCyan font-bold">#0${f + 1}</span>
+                            <span class="text-slate-500">${durMs}ms</span>
+                        </div>
+                        <div class="checker-bg w-full h-20 rounded-lg border border-slate-800/80 flex items-center justify-center">
+                            <canvas id="film-canvas-${f}" width="64" height="64"></canvas>
+                        </div>
+                    `;
+                    card.addEventListener('click', () => {
+                        playSynthSFX('blip');
+                        state.isPlaying = false;
+                        document.getElementById('play-pause-icon').className = 'fa-solid fa-play';
+                        document.getElementById('play-pause-text').textContent = 'PLAY';
+                        state.frameIndex = f;
+                        renderStage();
+                    });
+                    container.appendChild(card);
+
+                    const fc = document.getElementById(`film-canvas-${f}`);
+                    const fctx = fc.getContext('2d');
+                    fctx.imageSmoothingEnabled = false;
+                    const tmp = document.createElement('canvas');
+                    tmp.width = 32; tmp.height = 32;
+                    drawCyberNekoFrame(tmp.getContext('2d'), state.animState, f);
+                    fctx.drawImage(tmp, 0, 0, 64, 64);
+                }
+                updateFilmstripHighlight();
+            }
+
+            function updateFilmstripHighlight() {
+                document.querySelectorAll('.filmstrip-card').forEach(card => {
+                    const idx = Number(card.getAttribute('data-frame-card'));
+                    if (idx === state.frameIndex) {
+                        card.className = 'filmstrip-card p-2.5 rounded-xl bg-[#13182b] border-2 border-cyberCyan neon-cyan-glow flex flex-col items-center gap-2 transition';
+                    } else {
+                        card.className = 'filmstrip-card p-2.5 rounded-xl bg-[#06070d] border border-slate-800 hover:border-slate-600 flex flex-col items-center gap-2 transition';
+                    }
+                });
+            }
+
+            function generateFullSpriteSheetCanvas(scale = 1) {
+                const anims = ['IDLE', 'RUN', 'JUMP', 'OVERDRIVE'];
+                const sheetCanvas = document.createElement('canvas');
+                sheetCanvas.width = 32 * 6 * scale;
+                sheetCanvas.height = 32 * 4 * scale;
+                const sctx = sheetCanvas.getContext('2d');
+                sctx.imageSmoothingEnabled = false;
+
+                const tmp = document.createElement('canvas');
+                tmp.width = 32; tmp.height = 32;
+                const tctx = tmp.getContext('2d');
+                tctx.imageSmoothingEnabled = false;
+
+                anims.forEach((an, row) => {
+                    for (let col = 0; col < 6; col++) {
+                        drawCyberNekoFrame(tctx, an, col);
+                        sctx.drawImage(tmp, col * 32 * scale, row * 32 * scale, 32 * scale, 32 * scale);
+                    }
+                });
+                return sheetCanvas;
+            }
+
+            function downloadFullSpriteSheetPNG() {
+                playSynthSFX('pickup');
+                const sheet = generateFullSpriteSheetCanvas(1);
+                const link = document.createElement('a');
+                link.download = `cyber_neko_${state.scheme}_spritesheet_192x128.png`;
+                link.href = sheet.toDataURL('image/png');
+                link.click();
+                showToast('Sprite Sheet PNG Diunduh!', '4 baris animasi × 6 frame (192×128 px transparan) siap dipakai di game engine.', 'cyan');
+            }
+
+            // =================================================================
+            // 7. NEON TILESET STUDIO (8 TILES + PAINT / FILL / ERASER)
+            // =================================================================
+            const tileDefs = [
+                { id: 1, name: 'Lantai Metal Grid', solid: true },
+                { id: 2, name: 'Platform Neon Cyan', solid: true },
+                { id: 3, name: 'Dinding Pipa Cyber', solid: true },
+                { id: 4, name: 'Lantai Hazard Kuning', solid: true },
+                { id: 5, name: 'Gerbang Hologram', solid: false },
+                { id: 6, name: 'Papan Neon Kanji', solid: false },
+                { id: 7, name: 'Tangga Laser', solid: false },
+                { id: 8, name: 'Kristal Energi', solid: false }
+            ];
+
+            function drawTile16(ctx, tileId, dx, dy, size) {
+                const s = size / 16;
+                const p = (x, y, w, h, col) => {
+                    ctx.fillStyle = col;
+                    ctx.fillRect(dx + x * s, dy + y * s, w * s, h * s);
+                };
+
+                if (tileId === 1) {
+                    p(0, 0, 16, 16, '#181e33');
+                    p(0, 0, 16, 2, '#3b4875');
+                    p(1, 3, 6, 5, '#101424');
+                    p(9, 3, 6, 5, '#101424');
+                    p(1, 10, 6, 5, '#101424');
+                    p(9, 10, 6, 5, '#101424');
+                    p(2, 1, 2, 1, '#00f5d4');
+                    p(12, 1, 2, 1, '#00f5d4');
+                } else if (tileId === 2) {
+                    p(0, 0, 16, 5, '#12182b');
+                    p(0, 0, 16, 2, '#00f5d4');
+                    p(2, 3, 12, 1, '#ff2a85');
+                    p(1, 5, 2, 3, '#334155');
+                    p(13, 5, 2, 3, '#334155');
+                } else if (tileId === 3) {
+                    p(0, 0, 16, 16, '#111526');
+                    p(3, 0, 4, 16, '#2a3352');
+                    p(4, 0, 1, 16, '#00f5d4');
+                    p(10, 0, 3, 16, '#1f2640');
+                    p(2, 6, 6, 3, '#ff2a85');
+                } else if (tileId === 4) {
+                    p(0, 0, 16, 16, '#141724');
+                    p(0, 0, 16, 4, '#fee440');
+                    p(2, 0, 3, 4, '#06070d');
+                    p(8, 0, 3, 4, '#06070d');
+                    p(13, 0, 3, 4, '#06070d');
+                    p(1, 6, 14, 8, '#1e2438');
+                } else if (tileId === 5) {
+                    p(1, 0, 2, 16, '#334155');
+                    p(13, 0, 2, 16, '#334155');
+                    p(3, 1, 10, 15, 'rgba(0, 245, 212, 0.25)');
+                    p(3, 3, 10, 1, '#00f5d4');
+                    p(3, 8, 10, 1, '#00f5d4');
+                    p(3, 13, 10, 1, '#00f5d4');
+                } else if (tileId === 6) {
+                    p(1, 2, 14, 12, '#1a0b2e');
+                    p(1, 2, 14, 1, '#ff2a85');
+                    p(1, 13, 14, 1, '#ff2a85');
+                    p(1, 2, 1, 12, '#ff2a85');
+                    p(14, 2, 1, 12, '#ff2a85');
+                    p(4, 5, 8, 1, '#00f5d4');
+                    p(7, 4, 2, 7, '#00f5d4');
+                    p(4, 8, 8, 1, '#fee440');
+                } else if (tileId === 7) {
+                    p(2, 0, 1, 16, '#9b5de5');
+                    p(13, 0, 1, 16, '#9b5de5');
+                    for (let r = 2; r < 16; r += 4) p(3, r, 10, 1, '#00f5d4');
+                } else if (tileId === 8) {
+                    p(7, 2, 2, 12, '#00f5d4');
+                    p(5, 5, 6, 7, '#00f5d4');
+                    p(6, 4, 4, 9, '#ffffff');
+                    p(4, 13, 8, 2, '#334155');
+                }
+            }
+
+            const levelPresets = {
+                rooftop: [
+                    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                    [0,0,6,0,0,0,0,0,0,0,0,0,6,0,0,0],
+                    [0,0,0,0,0,0,0,8,0,0,0,0,0,0,5,0],
+                    [0,0,0,0,0,2,2,2,2,0,0,0,2,2,2,2],
+                    [0,0,8,0,0,0,0,7,0,0,0,0,0,0,0,0],
+                    [0,2,2,2,0,0,0,7,0,0,2,2,0,0,0,0],
+                    [0,0,0,0,0,0,0,7,0,0,0,0,0,8,0,0],
+                    [0,0,0,0,4,4,4,4,4,0,0,0,0,2,2,0],
+                    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+                    [3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3]
+                ],
+                alley: [
+                    [3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3],
+                    [3,0,6,0,0,0,6,0,0,0,6,0,0,0,5,3],
+                    [3,0,0,0,0,0,0,0,0,0,0,0,2,2,2,3],
+                    [3,0,0,0,8,0,0,0,0,8,0,0,7,0,0,3],
+                    [3,0,0,2,2,2,0,0,2,2,2,0,7,0,0,3],
+                    [3,0,0,0,0,0,0,0,0,0,0,0,7,0,0,3],
+                    [3,8,0,0,0,0,2,2,0,0,0,0,0,0,8,3],
+                    [3,2,2,0,0,0,0,0,0,0,4,4,4,0,0,3],
+                    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+                    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+                ],
+                reactor: [
+                    [3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3],
+                    [3,0,0,0,0,0,0,8,8,0,0,0,0,0,0,3],
+                    [3,0,5,0,0,0,2,2,2,2,0,0,0,6,0,3],
+                    [3,2,2,2,0,0,0,7,0,0,0,0,2,2,2,3],
+                    [3,0,0,0,0,0,0,7,0,0,0,0,0,0,0,3],
+                    [3,0,0,8,0,2,2,2,2,2,0,8,0,0,0,3],
+                    [3,0,2,2,0,0,0,0,0,0,0,2,2,0,0,3],
+                    [3,0,0,0,0,4,4,4,4,4,0,0,0,0,0,3],
+                    [4,4,4,1,1,1,1,1,1,1,1,1,1,4,4,4],
+                    [3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3]
+                ]
+            };
+
+            let currentLevelGrid = JSON.parse(JSON.stringify(levelPresets.rooftop));
+
+            function buildTilePalette() {
+                const container = document.getElementById('tile-palette-grid');
+                container.innerHTML = tileDefs.map(t => `
+                    <button type="button" data-tile-id="${t.id}" class="tile-pal-btn p-2 rounded-xl bg-[#0c0f1d] border ${t.id === state.selectedTileId ? 'border-cyberCyan bg-cyberCyan/15 neon-cyan-glow' : 'border-slate-800 hover:border-slate-600'} flex items-center gap-2.5 text-left transition">
+                        <canvas id="pal-tile-${t.id}" width="32" height="32" class="rounded bg-[#06070d] border border-slate-700 shrink-0"></canvas>
+                        <span class="text-[11px] font-mono text-slate-200 leading-tight">${t.name}</span>
+                    </button>
+                `).join('');
+
+                tileDefs.forEach(t => {
+                    const c = document.getElementById(`pal-tile-${t.id}`);
+                    const ctx = c.getContext('2d');
+                    ctx.imageSmoothingEnabled = false;
+                    drawTile16(ctx, t.id, 0, 0, 32);
+                });
+
+                document.querySelectorAll('.tile-pal-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        playSynthSFX('blip');
+                        state.selectedTileId = Number(btn.getAttribute('data-tile-id'));
+                        if (state.painterTool === 'eraser') setPainterTool('paint');
+                        const found = tileDefs.find(x => x.id === state.selectedTileId);
+                        document.getElementById('selected-tile-name').textContent = found ? found.name : '';
+                        buildTilePalette();
+                    });
+                });
+            }
+
+            function setPainterTool(tool) {
+                state.painterTool = tool;
+                document.querySelectorAll('.painter-tool-btn').forEach(b => {
+                    const active = b.getAttribute('data-tool') === tool;
+                    b.className = active
+                        ? 'painter-tool-btn py-1.5 px-2 rounded-lg bg-cyberCyan text-[#06070d] font-bold flex items-center justify-center gap-1 transition'
+                        : 'painter-tool-btn py-1.5 px-2 rounded-lg bg-[#13182b] text-slate-300 hover:text-white border border-slate-700 flex items-center justify-center gap-1 transition';
+                });
+            }
+
+            // Flood Fill Algorithm for Level Painter
+            function floodFillGrid(startR, startC, targetId, replacementId) {
+                if (targetId === replacementId) return;
+                const stack = [[startR, startC]];
+                while (stack.length > 0) {
+                    const [r, c] = stack.pop();
+                    if (r < 0 || r >= 10 || c < 0 || c >= 16) continue;
+                    if (currentLevelGrid[r][c] !== targetId) continue;
+                    currentLevelGrid[r][c] = replacementId;
+                    stack.push([r + 1, c], [r - 1, c], [r, c + 1], [r, c - 1]);
+                }
+            }
+
+            const painterCanvas = document.getElementById('levelPainterCanvas');
+            const painterCtx = painterCanvas.getContext('2d');
+
+            function renderLevelPainter() {
+                const w = painterCanvas.width;
+                const h = painterCanvas.height;
+                const tileSize = 40;
+                painterCtx.imageSmoothingEnabled = false;
+
+                painterCtx.fillStyle = '#060812';
+                painterCtx.fillRect(0, 0, w, h);
+
+                const buildings = [
+                    { x: 20, w: 70, h: 240, col: '#0c1124', win: '#00f5d4' },
+                    { x: 110, w: 90, h: 290, col: '#0f152e', win: '#ff2a85' },
+                    { x: 230, w: 80, h: 210, col: '#0c1124', win: '#fee440' },
+                    { x: 340, w: 110, h: 310, col: '#111733', win: '#00f5d4' },
+                    { x: 480, w: 85, h: 250, col: '#0c1124', win: '#9b5de5' }
+                ];
+                buildings.forEach(b => {
+                    painterCtx.fillStyle = b.col;
+                    painterCtx.fillRect(b.x, h - b.h, b.w, b.h);
+                    painterCtx.fillStyle = b.win;
+                    for (let wy = h - b.h + 16; wy < h - 40; wy += 24) {
+                        painterCtx.fillRect(b.x + 12, wy, 6, 4);
+                        painterCtx.fillRect(b.x + b.w - 22, wy + 8, 6, 4);
+                    }
+                });
+
+                for (let r = 0; r < 10; r++) {
+                    for (let c = 0; c < 16; c++) {
+                        const tid = currentLevelGrid[r][c];
+                        if (tid > 0) drawTile16(painterCtx, tid, c * tileSize, r * tileSize, tileSize);
+                        painterCtx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
+                        painterCtx.strokeRect(c * tileSize, r * tileSize, tileSize, tileSize);
+                    }
+                }
+            }
+
+            let isPainting = false;
+            let rightErase = false;
+
+            function handlePainterAction(clientX, clientY, isInitialClick = false) {
+                const rect = painterCanvas.getBoundingClientRect();
+                const scaleX = painterCanvas.width / rect.width;
+                const scaleY = painterCanvas.height / rect.height;
+                const col = Math.floor(((clientX - rect.left) * scaleX) / 40);
+                const row = Math.floor(((clientY - rect.top) * scaleY) / 40);
+
+                if (row >= 0 && row < 10 && col >= 0 && col < 16) {
+                    if (rightErase || state.painterTool === 'eraser') {
+                        if (currentLevelGrid[row][col] !== 0) {
+                            currentLevelGrid[row][col] = 0;
+                            playSynthSFX('paint');
+                            renderLevelPainter();
+                        }
+                    } else if (state.painterTool === 'fill' && isInitialClick) {
+                        const target = currentLevelGrid[row][col];
+                        floodFillGrid(row, col, target, state.selectedTileId);
+                        playSynthSFX('pickup');
+                        renderLevelPainter();
+                    } else {
+                        if (currentLevelGrid[row][col] !== state.selectedTileId) {
+                            currentLevelGrid[row][col] = state.selectedTileId;
+                            playSynthSFX('paint');
+                            renderLevelPainter();
+                        }
+                    }
+                }
+            }
+
+            painterCanvas.addEventListener('mousedown', (e) => {
+                isPainting = true;
+                rightErase = (e.button === 2);
+                handlePainterAction(e.clientX, e.clientY, true);
+            });
+            painterCanvas.addEventListener('mousemove', (e) => {
+                if (isPainting && state.painterTool !== 'fill') {
+                    handlePainterAction(e.clientX, e.clientY, false);
+                }
+            });
+            window.addEventListener('mouseup', () => { isPainting = false; });
+            painterCanvas.addEventListener('contextmenu', (e) => e.preventDefault());
+
+            // Download Tileset PNG (128x16 px strip of 8 tiles)
+            document.getElementById('btn-download-tileset').addEventListener('click', () => {
+                playSynthSFX('pickup');
+                const tsCanvas = document.createElement('canvas');
+                tsCanvas.width = 16 * 8;
+                tsCanvas.height = 16;
+                const tctx = tsCanvas.getContext('2d');
+                tctx.imageSmoothingEnabled = false;
+                tileDefs.forEach((t, idx) => {
+                    drawTile16(tctx, t.id, idx * 16, 0, 16);
+                });
+                const link = document.createElement('a');
+                link.download = 'neko_cyber_tileset_128x16.png';
+                link.href = tsCanvas.toDataURL('image/png');
+                link.click();
+                showToast('Tileset PNG Diunduh!', 'Strip 8 tile 16×16 px (128×16 px transparan) siap diimpor.', 'cyan');
+            });
+
+            // =================================================================
+            // 8. ARCADE HUD & 12 ARCADE ICONS GALLERY
+            // =================================================================
+            function renderArcadeHUD() {
+                const hpContainer = document.getElementById('hud-hp-segments');
+                const filledSegs = Math.ceil(state.hp / 10);
+                hpContainer.innerHTML = '';
+                for (let i = 0; i < 10; i++) {
+                    const seg = document.createElement('div');
+                    seg.className = i < filledSegs
+                        ? (state.hp <= 30 ? 'rounded-xs bg-cyberMagenta shadow-sm shadow-cyberMagenta' : 'rounded-xs bg-gradient-to-t from-cyberCyan to-[#72efdd] shadow-sm shadow-cyberCyan/50')
+                        : 'rounded-xs bg-slate-900 border border-slate-800';
+                    hpContainer.appendChild(seg);
+                }
+                document.getElementById('hud-hp-text').textContent = `${state.hp}/100`;
+                document.getElementById('hud-od-text').textContent = `${Math.round(state.overdriveCharge)}%`;
+                document.getElementById('hud-od-bar').style.width = `${Math.round(state.overdriveCharge)}%`;
+                document.getElementById('hud-score-val').textContent = String(state.score).padStart(7, '0');
+                document.getElementById('hud-combo-val').textContent = `x${state.combo} HIT!`;
+            }
+
+            let radarAngle = 0;
+            function drawRadar() {
+                const rc = document.getElementById('radarCanvas');
+                const rctx = rc.getContext('2d');
+                const cx = 48, cy = 48, r = 44;
+                rctx.clearRect(0, 0, 96, 96);
+
+                rctx.strokeStyle = 'rgba(0, 245, 212, 0.25)';
+                rctx.lineWidth = 1;
+                [15, 30, 44].forEach(rad => {
+                    rctx.beginPath();
+                    rctx.arc(cx, cy, rad, 0, Math.PI * 2);
+                    rctx.stroke();
+                });
+
+                radarAngle += 0.05;
+                rctx.strokeStyle = '#00f5d4';
+                rctx.beginPath();
+                rctx.moveTo(cx, cy);
+                rctx.lineTo(cx + Math.cos(radarAngle) * r, cy + Math.sin(radarAngle) * r);
+                rctx.stroke();
+
+                rctx.fillStyle = '#ff2a85';
+                rctx.fillRect(cx + 16, cy - 12, 4, 4);
+                rctx.fillStyle = '#fee440';
+                rctx.fillRect(cx - 20, cy + 14, 4, 4);
+            }
+
+            // 12 Requested Pixel-Art Arcade Icons
+            const arcadeIcons = [
+                { id: 'katana', name: 'Cyber Katana', tag: 'WEAPON' },
+                { id: 'battery', name: 'Energy Cell', tag: '+35% OD' },
+                { id: 'microchip', name: 'Data Chip', tag: '+500 PTS' },
+                { id: 'potion', name: 'Health Vial', tag: '+25 HP' },
+                { id: 'cyber_fish', name: 'Cyber Fish', tag: '+300 PTS' },
+                { id: 'bomb', name: 'Neon Bomb', tag: 'EMP BLAST' },
+                { id: 'shield', name: 'Shield Core', tag: 'BARRIER' },
+                { id: 'keycard', name: 'Keycard', tag: 'GATE KEY' },
+                { id: 'magnet', name: 'Magnet', tag: 'PULL ITEM' },
+                { id: 'booster', name: 'Booster', tag: 'SPEED UP' },
+                { id: 'virus', name: 'Skull Virus', tag: 'HAZARD' },
+                { id: 'trophy', name: 'Trophy', tag: 'RANK S+' }
+            ];
+
+            function drawArcadeIcon16(ctx, iconId, size) {
+                const s = size / 16;
+                const p = (x, y, w, h, col) => {
+                    ctx.fillStyle = col;
+                    ctx.fillRect(x * s, y * s, w * s, h * s);
+                };
+
+                if (iconId === 'katana') {
+                    for (let i = 0; i < 8; i++) p(3 + i, 11 - i, 2, 2, '#00f5d4');
+                    p(10, 3, 3, 3, '#ffffff');
+                    p(2, 12, 3, 3, '#ff2a85');
+                } else if (iconId === 'battery') {
+                    p(6, 2, 4, 2, '#94a3b8');
+                    p(4, 4, 8, 10, '#1e293b');
+                    p(5, 5, 6, 8, '#fee440');
+                    p(7, 6, 2, 6, '#ffffff');
+                } else if (iconId === 'microchip') {
+                    p(4, 4, 8, 8, '#1e293b');
+                    p(5, 5, 6, 6, '#00f5d4');
+                    p(7, 7, 2, 2, '#ff2a85');
+                    [5, 8, 10].forEach(k => {
+                        p(k, 2, 1, 2, '#fee440'); p(k, 12, 1, 2, '#fee440');
+                        p(2, k, 2, 1, '#fee440'); p(12, k, 2, 1, '#fee440');
+                    });
+                } else if (iconId === 'potion') {
+                    p(6, 2, 4, 2, '#fee440');
+                    p(4, 5, 8, 8, '#00f5d4');
+                    p(5, 6, 2, 3, '#ffffff');
+                } else if (iconId === 'cyber_fish') {
+                    p(3, 6, 8, 4, '#00f5d4');
+                    p(11, 5, 3, 6, '#ff2a85');
+                    p(4, 7, 2, 2, '#06070d');
+                    p(7, 6, 1, 4, '#fee440');
+                } else if (iconId === 'bomb') {
+                    p(4, 5, 8, 8, '#1e293b');
+                    p(5, 4, 6, 10, '#1e293b');
+                    p(6, 7, 4, 4, '#ff2a85');
+                    p(7, 2, 2, 2, '#94a3b8');
+                    p(9, 1, 2, 2, '#fee440');
+                } else if (iconId === 'shield') {
+                    p(3, 3, 10, 6, '#9b5de5');
+                    p(4, 9, 8, 3, '#9b5de5');
+                    p(6, 12, 4, 2, '#00f5d4');
+                    p(5, 5, 6, 4, '#00f5d4');
+                } else if (iconId === 'keycard') {
+                    p(3, 4, 10, 8, '#e2e8f0');
+                    p(3, 6, 10, 2, '#ff2a85');
+                    p(5, 9, 3, 2, '#00f5d4');
+                } else if (iconId === 'magnet') {
+                    p(3, 4, 3, 8, '#ff2a85');
+                    p(10, 4, 3, 8, '#00f5d4');
+                    p(3, 10, 10, 3, '#94a3b8');
+                    p(3, 3, 3, 2, '#ffffff');
+                    p(10, 3, 3, 2, '#ffffff');
+                } else if (iconId === 'booster') {
+                    p(6, 2, 4, 9, '#00f5d4');
+                    p(4, 6, 2, 5, '#ff2a85');
+                    p(10, 6, 2, 5, '#ff2a85');
+                    p(6, 11, 4, 3, '#fee440');
+                } else if (iconId === 'virus') {
+                    p(4, 3, 8, 7, '#ff2a85');
+                    p(5, 10, 6, 3, '#ff2a85');
+                    p(5, 6, 2, 2, '#06070d');
+                    p(9, 6, 2, 2, '#06070d');
+                    p(6, 11, 1, 2, '#fee440');
+                    p(9, 11, 1, 2, '#fee440');
+                } else {
+                    p(4, 3, 8, 5, '#fee440');
+                    p(6, 8, 4, 3, '#fee440');
+                    p(4, 11, 8, 2, '#ff2a85');
+                    p(6, 4, 2, 2, '#ffffff');
+                }
+            }
+
+            function buildIconsGallery() {
+                const grid = document.getElementById('arcade-icons-grid');
+                grid.innerHTML = arcadeIcons.map(ic => `
+                    <button type="button" data-icon-id="${ic.id}" class="icon-asset-card p-3 rounded-xl bg-[#06070d] hover:bg-[#13182b] border border-slate-800 hover:border-cyberYellow/70 hover:shadow-lg hover:shadow-cyberYellow/15 flex flex-col items-center gap-2 transition group">
+                        <div class="checker-bg w-14 h-14 rounded-lg border border-slate-800 flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <canvas id="icon-cv-${ic.id}" width="48" height="48"></canvas>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-[11px] font-bold text-slate-200 group-hover:text-cyberYellow transition">${ic.name}</p>
+                            <span class="text-[9px] font-mono text-cyberCyan">${ic.tag}</span>
+                        </div>
+                    </button>
+                `).join('');
+
+                arcadeIcons.forEach(ic => {
+                    const c = document.getElementById(`icon-cv-${ic.id}`);
+                    const ctx = c.getContext('2d');
+                    ctx.imageSmoothingEnabled = false;
+                    drawArcadeIcon16(ctx, ic.id, 48);
+                });
+
+                document.querySelectorAll('.icon-asset-card').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        playSynthSFX('pickup');
+                        const id = btn.getAttribute('data-icon-id');
+                        const item = arcadeIcons.find(x => x.id === id);
+                        const exp = document.createElement('canvas');
+                        exp.width = 64; exp.height = 64;
+                        const ectx = exp.getContext('2d');
+                        ectx.imageSmoothingEnabled = false;
+                        drawArcadeIcon16(ectx, id, 64);
+
+                        const link = document.createElement('a');
+                        link.download = `neko_icon_${id}_64px.png`;
+                        link.href = exp.toDataURL('image/png');
+                        link.click();
+                        showToast('Ikon PNG Diunduh', `Aset "${item.name}" (64×64 crisp PNG) berhasil diunduh.`, 'yellow');
+                    });
+                });
+            }
+
+            // =================================================================
+            // 9. MINI-GAME PLAYABLE SANDBOX ('NEKO RUNNER // LIVE TEST')
+            // =================================================================
+            const gameCanvas = document.getElementById('gameSandboxCanvas');
+            const gameCtx = gameCanvas.getContext('2d');
+
+            const player = {
+                x: 80,
+                y: 220,
+                vx: 0,
+                vy: 0,
+                w: 36,
+                h: 44,
+                facing: 1,
+                grounded: false,
+                overdriveTimer: 0,
+                anim: 'IDLE',
+                frame: 0,
+                frameTick: 0
+            };
+
+            const keys = { left: false, right: false, jump: false };
+            let collectibles = [];
+            let dashParticles = [];
+
+            function spawnCollectiblesFromGrid() {
+                collectibles = [];
+                const tileW = 60;
+                const tileH = 42;
+                for (let r = 0; r < 10; r++) {
+                    for (let c = 0; c < 16; c++) {
+                        if (currentLevelGrid[r][c] === 8) {
+                            collectibles.push({
+                                x: c * tileW + 16,
+                                y: r * tileH + 8,
+                                collected: false,
+                                type: (c + r) % 2 === 0 ? 'cyber_fish' : 'microchip'
+                            });
+                        }
+                    }
+                }
+                if (collectibles.length === 0) {
+                    collectibles = [
+                        { x: 260, y: 270, collected: false, type: 'cyber_fish' },
+                        { x: 520, y: 220, collected: false, type: 'microchip' },
+                        { x: 760, y: 260, collected: false, type: 'battery' }
+                    ];
+                }
+            }
+
+            function resetSandboxPlayer() {
+                player.x = 70;
+                player.y = 180;
+                player.vx = 0;
+                player.vy = 0;
+                player.overdriveTimer = 0;
+                dashParticles = [];
+                spawnCollectiblesFromGrid();
+            }
+
+            function triggerOverdrive() {
+                if (player.overdriveTimer <= 0 && state.overdriveCharge >= 25) {
+                    playSynthSFX('overdrive');
+                    player.overdriveTimer = 240;
+                    player.vx = player.facing * 12; // Overdrive Dash impulse!
+                    state.overdriveCharge = Math.max(0, state.overdriveCharge - 25);
+                    renderArcadeHUD();
+                    showToast('OVERDRIVE DASH!', 'Kecepatan super & aura petir aktif!', 'magenta');
+                }
+            }
+
+            function syncVirtualDpadUI() {
+                const toggleActive = (id, active, activeClasses) => {
+                    const el = document.getElementById(id);
+                    if (!el) return;
+                    if (active) el.classList.add(...activeClasses);
+                    else el.classList.remove(...activeClasses);
+                };
+                toggleActive('vpad-left', keys.left, ['bg-cyberCyan', 'text-[#06070d]']);
+                toggleActive('vpad-right', keys.right, ['bg-cyberCyan', 'text-[#06070d]']);
+                toggleActive('vpad-up', keys.jump, ['bg-cyberCyan', 'text-[#06070d]']);
+                toggleActive('vpad-jmp', keys.jump, ['bg-cyberCyan', 'text-[#06070d]']);
+                toggleActive('vpad-od', player.overdriveTimer > 0, ['bg-cyberMagenta', 'text-white']);
+            }
+
+            function updateGameSandbox() {
+                const tileW = 60;
+                const tileH = 42;
+                const isOD = player.overdriveTimer > 0;
+                if (isOD) player.overdriveTimer--;
+
+                const speed = isOD ? 6.6 : 4.2;
+                if (keys.left) {
+                    player.vx = -speed;
+                    player.facing = -1;
+                } else if (keys.right) {
+                    player.vx = speed;
+                    player.facing = 1;
+                } else {
+                    player.vx *= 0.78;
+                    if (Math.abs(player.vx) < 0.2) player.vx = 0;
+                }
+
+                if (keys.jump && player.grounded) {
+                    playSynthSFX('jump');
+                    player.vy = isOD ? -12.8 : -10.8;
+                    player.grounded = false;
+                }
+
+                player.vy += 0.55;
+                if (player.vy > 12) player.vy = 12;
+
+                player.x += player.vx;
+                if (player.x < 4) player.x = 4;
+                if (player.x + player.w > gameCanvas.width - 4) player.x = gameCanvas.width - 4 - player.w;
+
+                const prevBottom = player.y + player.h;
+                player.y += player.vy;
+                player.grounded = false;
+
+                for (let r = 0; r < 10; r++) {
+                    for (let c = 0; c < 16; c++) {
+                        const tid = currentLevelGrid[r][c];
+                        const def = tileDefs.find(t => t.id === tid);
+                        if (def && def.solid) {
+                            const tx = c * tileW;
+                            const ty = r * tileH;
+                            if (
+                                player.vy >= 0 &&
+                                prevBottom <= ty + 10 &&
+                                player.y + player.h >= ty &&
+                                player.x + player.w - 8 > tx &&
+                                player.x + 8 < tx + tileW
+                            ) {
+                                player.y = ty - player.h;
+                                player.vy = 0;
+                                player.grounded = true;
+                            }
+                        }
+                    }
+                }
+
+                if (player.y + player.h > gameCanvas.height - 8) {
+                    player.y = gameCanvas.height - 8 - player.h;
+                    player.vy = 0;
+                    player.grounded = true;
+                }
+
+                // Spawn Overdrive Lightning Trail Particles
+                if (isOD || Math.abs(player.vx) > 3.5) {
+                    const sch = colorSchemes[state.scheme];
+                    dashParticles.push({
+                        x: player.x + player.w / 2 + (Math.random() * 14 - 7),
+                        y: player.y + player.h / 2 + (Math.random() * 18 - 9),
+                        life: 16,
+                        col: isOD ? (Math.random() > 0.5 ? '#fee440' : sch.primary) : sch.secondary
+                    });
+                }
+                dashParticles.forEach(pt => { pt.life--; pt.y -= 0.4; });
+                dashParticles = dashParticles.filter(pt => pt.life > 0);
+
+                // Collectibles pickup
+                collectibles.forEach(item => {
+                    if (!item.collected) {
+                        if (
+                            player.x < item.x + 26 &&
+                            player.x + player.w > item.x &&
+                            player.y < item.y + 26 &&
+                            player.y + player.h > item.y
+                        ) {
+                            item.collected = true;
+                            playSynthSFX('pickup');
+                            state.score += item.type === 'microchip' ? 500 : 300;
+                            state.combo++;
+                            state.overdriveCharge = Math.min(100, state.overdriveCharge + 25);
+                            renderArcadeHUD();
+                        }
+                    }
+                });
+
+                if (isOD) player.anim = 'OVERDRIVE';
+                else if (!player.grounded) player.anim = 'JUMP';
+                else if (Math.abs(player.vx) > 0.6) player.anim = 'RUN';
+                else player.anim = 'IDLE';
+
+                player.frameTick++;
+                if (player.frameTick >= 6) {
+                    player.frameTick = 0;
+                    player.frame = (player.frame + 1) % 6;
+                }
+
+                syncVirtualDpadUI();
+            }
+
+            const gameSpriteBuf = document.createElement('canvas');
+            gameSpriteBuf.width = 32; gameSpriteBuf.height = 32;
+
+            function drawGameSandbox() {
+                const w = gameCanvas.width;
+                const h = gameCanvas.height;
+                const tileW = 60;
+                const tileH = 42;
+                gameCtx.imageSmoothingEnabled = false;
+
+                gameCtx.fillStyle = '#060812';
+                gameCtx.fillRect(0, 0, w, h);
+
+                gameCtx.strokeStyle = 'rgba(0, 245, 212, 0.08)';
+                gameCtx.lineWidth = 1;
+                for (let gx = 0; gx < w; gx += 60) {
+                    gameCtx.beginPath();
+                    gameCtx.moveTo(gx, 0);
+                    gameCtx.lineTo(gx, h);
+                    gameCtx.stroke();
+                }
+
+                // Draw Level Tiles
+                for (let r = 0; r < 10; r++) {
+                    for (let c = 0; c < 16; c++) {
+                        const tid = currentLevelGrid[r][c];
+                        if (tid > 0 && tid !== 8) {
+                            drawTile16(gameCtx, tid, c * tileW, r * tileH, tileW);
+                        }
+                    }
+                }
+
+                // Draw Collectibles
+                const icBuf = document.createElement('canvas');
+                icBuf.width = 32; icBuf.height = 32;
+                const icCtx = icBuf.getContext('2d');
+                icCtx.imageSmoothingEnabled = false;
+
+                collectibles.forEach(item => {
+                    if (!item.collected) {
+                        icCtx.clearRect(0, 0, 32, 32);
+                        drawArcadeIcon16(icCtx, item.type, 32);
+                        const bob = Math.sin(Date.now() * 0.006 + item.x) * 3;
+                        gameCtx.drawImage(icBuf, item.x, item.y + bob, 28, 28);
+                    }
+                });
+
+                // Draw Dash / Overdrive Particles
+                dashParticles.forEach(pt => {
+                    gameCtx.globalAlpha = pt.life / 16;
+                    gameCtx.fillStyle = pt.col;
+                    gameCtx.fillRect(pt.x, pt.y, 4, 4);
+                });
+                gameCtx.globalAlpha = 1.0;
+
+                // Draw Player Neko Sprite
+                const pCtx = gameSpriteBuf.getContext('2d');
+                pCtx.imageSmoothingEnabled = false;
+                drawCyberNekoFrame(pCtx, player.anim, player.frame);
+
+                gameCtx.save();
+                const renderSize = 56;
+                const drawX = Math.round(player.x - 10);
+                const drawY = Math.round(player.y - 12);
+                if (player.facing === -1) {
+                    gameCtx.translate(drawX + renderSize, drawY);
+                    gameCtx.scale(-1, 1);
+                    gameCtx.drawImage(gameSpriteBuf, 0, 0, renderSize, renderSize);
+                } else {
+                    gameCtx.drawImage(gameSpriteBuf, drawX, drawY, renderSize, renderSize);
+                }
+                gameCtx.restore();
+
+                // Top In-Game Telemetry HUD
+                gameCtx.fillStyle = 'rgba(6, 7, 13, 0.85)';
+                gameCtx.fillRect(12, 12, 365, 30);
+                gameCtx.strokeStyle = '#00f5d4';
+                gameCtx.strokeRect(12, 12, 365, 30);
+                gameCtx.fillStyle = '#00f5d4';
+                gameCtx.font = '11px "JetBrains Mono", monospace';
+                gameCtx.fillText(`ANIM: ${player.anim} | SCORE: ${state.score} | COMBO: x${state.combo} | OD: ${Math.round(state.overdriveCharge)}%`, 20, 31);
+            }
+
+            // =================================================================
+            // 10. EVENT LISTENERS & LOOP UTAMA
+            // =================================================================
+            // CRT & SFX Header Toggles
+            document.getElementById('btn-toggle-crt').addEventListener('click', (e) => {
+                const layer = document.getElementById('crt-scanline-layer');
+                const hidden = layer.classList.toggle('hidden');
+                document.getElementById('crt-label').textContent = hidden ? 'CRT: OFF' : 'CRT: ON';
+                playSynthSFX('blip');
+            });
+
+            document.getElementById('btn-toggle-sfx').addEventListener('click', () => {
+                sfxEnabled = !sfxEnabled;
+                document.getElementById('sfx-icon').className = sfxEnabled ? 'fa-solid fa-volume-high' : 'fa-solid fa-volume-xmark';
+                document.getElementById('sfx-label').textContent = sfxEnabled ? 'SFX 8-Bit: ON' : 'SFX 8-Bit: OFF';
+                if (sfxEnabled) playSynthSFX('pickup');
+            });
+
+            // Export Buttons
+            document.getElementById('btn-export-sheet').addEventListener('click', downloadFullSpriteSheetPNG);
+            document.getElementById('btn-modal-download-png').addEventListener('click', downloadFullSpriteSheetPNG);
+
+            document.getElementById('btn-export-json').addEventListener('click', () => {
+                playSynthSFX('pickup');
+                const anims = ['IDLE', 'RUN', 'JUMP', 'OVERDRIVE'];
+                const frames = {};
+                anims.forEach((an, row) => {
+                    for (let col = 0; col < 6; col++) {
+                        frames[`neko_${an.toLowerCase()}_${col}`] = {
+                            frame: { x: col * 32, y: row * 32, w: 32, h: 32 },
+                            sourceSize: { w: 32, h: 32 },
+                            duration: Math.round(1000 / state.fps)
+                        };
+                    }
+                });
+
+                const atlasData = {
+                    meta: {
+                        app: 'NEKO-CYBER Studio v3.0',
+                        image: `cyber_neko_${state.scheme}_spritesheet_192x128.png`,
+                        size: { w: 192, h: 128 },
+                        customization: { scheme: state.scheme, expr: state.expr, fur: state.fur }
+                    },
+                    frames
+                };
+
+                const blob = new Blob([JSON.stringify(atlasData, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.download = `cyber_neko_${state.scheme}_atlas.json`;
+                link.href = url;
+                link.click();
+                URL.revokeObjectURL(url);
+                showToast('JSON Atlas Diunduh!', 'Metadata koordinat frame & durasi berhasil diekspor.', 'magenta');
+            });
+
+            // Full Sprite Sheet Modal Preview
+            const fullSheetModal = document.getElementById('fullsheet-modal');
+            document.getElementById('btn-preview-fullsheet').addEventListener('click', () => {
+                playSynthSFX('blip');
+                const previewCanvas = document.getElementById('fullSheetPreviewCanvas');
+                const pctx = previewCanvas.getContext('2d');
+                pctx.imageSmoothingEnabled = false;
+                pctx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
+
+                const scaledSheet = generateFullSpriteSheetCanvas(3); // 576x384
+                pctx.drawImage(scaledSheet, 0, 0);
+
+                // Grid lines for 4x6
+                pctx.strokeStyle = 'rgba(0, 245, 212, 0.25)';
+                for (let c = 1; c < 6; c++) {
+                    pctx.beginPath(); pctx.moveTo(c * 96, 0); pctx.lineTo(c * 96, 384); pctx.stroke();
+                }
+                for (let r = 1; r < 4; r++) {
+                    pctx.beginPath(); pctx.moveTo(0, r * 96); pctx.lineTo(576, r * 96); pctx.stroke();
+                }
+
+                fullSheetModal.classList.remove('hidden');
+                fullSheetModal.classList.add('flex');
+            });
+
+            document.getElementById('btn-close-fullsheet').addEventListener('click', () => {
+                fullSheetModal.classList.add('hidden');
+                fullSheetModal.classList.remove('flex');
+            });
+            fullSheetModal.addEventListener('click', (e) => {
+                if (e.target === fullSheetModal) {
+                    fullSheetModal.classList.add('hidden');
+                    fullSheetModal.classList.remove('flex');
+                }
+            });
+
+            // Animation State Tabs
+            document.querySelectorAll('.anim-state-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.anim-state-btn').forEach(b => {
+                        b.className = 'anim-state-btn px-3 py-1.5 rounded-lg font-pixel text-[10px] text-slate-400 hover:text-white transition';
+                    });
+                    const target = btn.getAttribute('data-anim');
+                    state.animState = target;
+                    state.frameIndex = 0;
+                    playSynthSFX(target === 'OVERDRIVE' ? 'overdrive' : 'blip');
+                    btn.className = target === 'OVERDRIVE'
+                        ? 'anim-state-btn px-3 py-1.5 rounded-lg font-pixel text-[10px] bg-cyberMagenta text-white font-bold neon-magenta-glow transition'
+                        : 'anim-state-btn px-3 py-1.5 rounded-lg font-pixel text-[10px] bg-cyberCyan text-[#06070d] font-bold neon-cyan-glow transition';
+                    buildFilmstrip();
+                    renderStage();
+                });
+            });
+
+            // Playback & Stage Controls
+            document.getElementById('btn-play-pause').addEventListener('click', () => {
+                playSynthSFX('blip');
+                state.isPlaying = !state.isPlaying;
+                document.getElementById('play-pause-icon').className = state.isPlaying ? 'fa-solid fa-pause' : 'fa-solid fa-play';
+                document.getElementById('play-pause-text').textContent = state.isPlaying ? 'PAUSE' : 'PLAY';
+            });
+
+            document.getElementById('btn-step-prev').addEventListener('click', () => {
+                playSynthSFX('blip');
+                state.isPlaying = false;
+                document.getElementById('play-pause-icon').className = 'fa-solid fa-play';
+                document.getElementById('play-pause-text').textContent = 'PLAY';
+                state.frameIndex = (state.frameIndex - 1 + state.totalFrames) % state.totalFrames;
+                renderStage();
+            });
+
+            document.getElementById('btn-step-next').addEventListener('click', () => {
+                playSynthSFX('blip');
+                state.isPlaying = false;
+                document.getElementById('play-pause-icon').className = 'fa-solid fa-play';
+                document.getElementById('play-pause-text').textContent = 'PLAY';
+                state.frameIndex = (state.frameIndex + 1) % state.totalFrames;
+                renderStage();
+            });
+
+            document.getElementById('fps-slider').addEventListener('input', (e) => {
+                state.fps = Number(e.target.value);
+                document.getElementById('fps-val').textContent = state.fps;
+                buildFilmstrip();
+            });
+
+            document.querySelectorAll('.zoom-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    playSynthSFX('blip');
+                    document.querySelectorAll('.zoom-btn').forEach(b => {
+                        b.className = 'zoom-btn px-2 py-1 rounded bg-[#13182b] text-slate-400 hover:text-white transition';
+                    });
+                    btn.className = 'zoom-btn px-2 py-1 rounded bg-cyberCyan text-[#06070d] font-bold transition';
+                    state.zoom = Number(btn.getAttribute('data-zoom'));
+                    renderStage();
+                });
+            });
+
+            document.getElementById('btn-toggle-pedestal').addEventListener('click', (e) => {
+                playSynthSFX('blip');
+                state.showPedestal = !state.showPedestal;
+                e.currentTarget.className = state.showPedestal
+                    ? 'px-2.5 py-1 rounded-lg font-mono text-[11px] bg-cyberPurple/25 text-cyberPurple border border-cyberPurple/50 transition'
+                    : 'px-2.5 py-1 rounded-lg font-mono text-[11px] bg-[#06070d]/85 text-slate-400 border border-slate-700 transition';
+                renderStage();
+            });
+
+            document.getElementById('btn-toggle-grid').addEventListener('click', (e) => {
+                playSynthSFX('blip');
+                state.showGrid = !state.showGrid;
+                e.currentTarget.className = state.showGrid
+                    ? 'px-2.5 py-1 rounded-lg font-mono text-[11px] bg-cyberCyan/20 text-cyberCyan border border-cyberCyan/40 transition'
+                    : 'px-2.5 py-1 rounded-lg font-mono text-[11px] bg-[#06070d]/85 text-slate-400 border border-slate-700 transition';
+                renderStage();
+            });
+
+            document.getElementById('btn-toggle-onion').addEventListener('click', (e) => {
+                playSynthSFX('blip');
+                state.onionSkin = !state.onionSkin;
+                e.currentTarget.className = state.onionSkin
+                    ? 'px-2.5 py-1 rounded-lg font-mono text-[11px] bg-cyberPurple/25 text-cyberPurple border border-cyberPurple/50 transition'
+                    : 'px-2.5 py-1 rounded-lg font-mono text-[11px] bg-[#06070d]/85 text-slate-400 border border-slate-700 transition';
+                renderStage();
+            });
+
+            document.getElementById('btn-toggle-flip').addEventListener('click', (e) => {
+                playSynthSFX('blip');
+                state.flipH = !state.flipH;
+                e.currentTarget.className = state.flipH
+                    ? 'px-2.5 py-1 rounded-lg font-mono text-[11px] bg-cyberYellow/20 text-cyberYellow border border-cyberYellow/40 transition'
+                    : 'px-2.5 py-1 rounded-lg font-mono text-[11px] bg-[#06070d]/85 text-slate-400 border border-slate-700 transition';
+                renderStage();
+            });
+
+            document.getElementById('chk-hitbox').addEventListener('change', (e) => {
+                playSynthSFX('blip');
+                state.showHitbox = e.target.checked;
+                renderStage();
+            });
+
+            // Customizer Buttons
+            document.querySelectorAll('.scheme-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    playSynthSFX('blip');
+                    document.querySelectorAll('.scheme-btn').forEach(b => {
+                        b.className = 'scheme-btn p-2 rounded-xl bg-[#06070d] border border-slate-800 text-slate-300 hover:border-slate-600 flex items-center justify-between transition';
+                    });
+                    btn.className = 'scheme-btn p-2 rounded-xl bg-[#13182b] border-2 border-cyberCyan text-white flex items-center justify-between transition';
+                    state.scheme = btn.getAttribute('data-scheme');
+                    buildFilmstrip();
+                    renderStage();
+                });
+            });
+
+            document.querySelectorAll('.expr-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    playSynthSFX('blip');
+                    document.querySelectorAll('.expr-btn').forEach(b => {
+                        b.className = 'expr-btn py-2 px-2.5 rounded-xl bg-[#06070d] border border-slate-800 text-slate-400 hover:text-white transition';
+                    });
+                    btn.className = 'expr-btn py-2 px-2.5 rounded-xl bg-cyberPurple/25 border-2 border-cyberPurple text-white font-bold transition';
+                    state.expr = btn.getAttribute('data-expr');
+                    buildFilmstrip();
+                    renderStage();
+                });
+            });
+
+            document.querySelectorAll('.fur-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    playSynthSFX('blip');
+                    document.querySelectorAll('.fur-btn').forEach(b => {
+                        b.className = 'fur-btn py-2 px-2 rounded-xl bg-[#06070d] border border-slate-800 text-slate-400 hover:text-white transition';
+                    });
+                    btn.className = 'fur-btn py-2 px-2 rounded-xl bg-cyberCyan/15 border-2 border-cyberCyan text-cyberCyan font-bold transition';
+                    state.fur = btn.getAttribute('data-fur');
+                    buildFilmstrip();
+                    renderStage();
+                });
+            });
+
+            // Painter Tools & Level Presets
+            document.querySelectorAll('.painter-tool-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    playSynthSFX('blip');
+                    setPainterTool(btn.getAttribute('data-tool'));
+                });
+            });
+
+            document.querySelectorAll('.preset-level-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    playSynthSFX('pickup');
+                    const p = btn.getAttribute('data-preset');
+                    currentLevelGrid = JSON.parse(JSON.stringify(levelPresets[p]));
+                    renderLevelPainter();
+                    spawnCollectiblesFromGrid();
+                    showToast('Preset Level Dimuat', `Layout "${p.toUpperCase()}" diterapkan ke Level Painter & Sandbox.`, 'cyan');
+                });
+            });
+
+            document.getElementById('btn-clear-grid').addEventListener('click', () => {
+                playSynthSFX('blip');
+                currentLevelGrid = Array.from({ length: 10 }, () => Array(16).fill(0));
+                currentLevelGrid[9] = Array(16).fill(1);
+                renderLevelPainter();
+                showToast('Grid Dibersihkan', 'Kanvas level dikosongkan (lantai dasar dipertahankan).', 'yellow');
+            });
+
+            document.getElementById('btn-play-custom-level').addEventListener('click', () => {
+                playSynthSFX('pickup');
+                resetSandboxPlayer();
+                document.getElementById('sec-sandbox').scrollIntoView({ behavior: 'smooth' });
+                gameCanvas.focus();
+                showToast('Level Siap Dimainkan!', 'Gunakan A/D, Spasi, dan Shift untuk menguji level buatan Anda.', 'cyan');
+            });
+
+            document.getElementById('btn-reset-sandbox').addEventListener('click', () => {
+                playSynthSFX('blip');
+                resetSandboxPlayer();
+            });
+
+            // Interactive HUD Test Buttons
+            document.getElementById('btn-hp-minus').addEventListener('click', () => {
+                playSynthSFX('paint');
+                state.hp = Math.max(0, state.hp - 10);
+                renderArcadeHUD();
+            });
+            document.getElementById('btn-hp-plus').addEventListener('click', () => {
+                playSynthSFX('pickup');
+                state.hp = Math.min(100, state.hp + 10);
+                renderArcadeHUD();
+            });
+            document.getElementById('btn-od-charge').addEventListener('click', () => {
+                playSynthSFX('pickup');
+                state.overdriveCharge = Math.min(100, state.overdriveCharge + 25);
+                renderArcadeHUD();
+            });
+
+            // Keyboard Controls for Playable Sandbox
+            window.addEventListener('keydown', (e) => {
+                if (document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+                const k = e.key.toLowerCase();
+                if (k === 'a' || e.key === 'ArrowLeft') keys.left = true;
+                if (k === 'd' || e.key === 'ArrowRight') keys.right = true;
+                if (k === 'w' || e.key === 'ArrowUp' || e.code === 'Space') {
+                    if (document.activeElement === gameCanvas || ['w', 'arrowup'].includes(k)) e.preventDefault();
+                    keys.jump = true;
+                }
+                if (k === 'shift' || k === 'e') triggerOverdrive();
+            });
+
+            window.addEventListener('keyup', (e) => {
+                const k = e.key.toLowerCase();
+                if (k === 'a' || e.key === 'ArrowLeft') keys.left = false;
+                if (k === 'd' || e.key === 'ArrowRight') keys.right = false;
+                if (k === 'w' || e.key === 'ArrowUp' || e.code === 'Space') keys.jump = false;
+            });
+
+            // Virtual & Touch Buttons
+            document.querySelectorAll('.vpad-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const act = btn.getAttribute('data-vkey');
+                    if (act === 'overdrive') triggerOverdrive();
+                    if (act === 'jump') {
+                        playSynthSFX('jump');
+                        player.vy = -10.8;
+                        player.grounded = false;
+                    }
+                    if (act === 'left') { player.x = Math.max(10, player.x - 24); player.facing = -1; }
+                    if (act === 'right') { player.x = Math.min(gameCanvas.width - 50, player.x + 24); player.facing = 1; }
+                });
+            });
+
+            const bindHold = (id, keyName) => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.addEventListener('touchstart', (e) => { e.preventDefault(); keys[keyName] = true; });
+                el.addEventListener('touchend', () => { keys[keyName] = false; });
+                el.addEventListener('mousedown', () => { keys[keyName] = true; });
+                el.addEventListener('mouseup', () => { keys[keyName] = false; });
+            };
+            bindHold('touch-left', 'left');
+            bindHold('touch-right', 'right');
+            bindHold('touch-jump', 'jump');
+            const touchOd = document.getElementById('touch-od');
+            if (touchOd) touchOd.addEventListener('click', triggerOverdrive);
+
+            // =================================================================
+            // 11. MAIN ANIMATION LOOP & WINDOW LOAD
+            // =================================================================
+            let lastStageTime = 0;
+            function mainLoop(timestamp) {
+                renderCityBackdrop();
+
+                const frameInterval = 1000 / state.fps;
+                if (state.isPlaying && timestamp - lastStageTime >= frameInterval) {
+                    lastStageTime = timestamp;
+                    state.frameIndex = (state.frameIndex + 1) % state.totalFrames;
+                }
+                renderStage();
+
+                drawRadar();
+                updateGameSandbox();
+                drawGameSandbox();
+
+                requestAnimationFrame(mainLoop);
+            }
+
+            window.addEventListener('resize', initCityBackdrop);
+
+            window.onload = function () {
+                initCityBackdrop();
+                buildFilmstrip();
+                renderStage();
+                buildTilePalette();
+                renderLevelPainter();
+                renderArcadeHUD();
+                buildIconsGallery();
+                resetSandboxPlayer();
+                requestAnimationFrame(mainLoop);
+            };
+        })();
+    </script>
+</body>
+</html>
